@@ -21,6 +21,8 @@
 #ifndef _AC_TYPES_H_
 #define _AC_TYPES_H_
 
+#include <stdint.h>
+
 /* AC_ALPHABET_t:
  * defines the alphabet type.
  * Actually defining AC_ALPHABET_t as a char will work, but sometimes we deal
@@ -31,7 +33,7 @@
  * AC_ALPHABET_t and leave it optional for other developers to define their
  * own alphabets.
 **/
-typedef char AC_ALPHABET_t;
+typedef void* AC_ALPHABET_t;
 
 /* AC_REP_t:
  * Provides a more readable representative for a pattern.
@@ -43,8 +45,8 @@ typedef char AC_ALPHABET_t;
  * union for this purpose. you can add your desired type in it.
 **/
 typedef union {
-	char * stringy; /* null-terminated string */
-	unsigned long number;
+	void * stringy; /* null-terminated string */
+	uint64_t number;
 } AC_REP_t;
 
 /* AC_PATTERN_t:
