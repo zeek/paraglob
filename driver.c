@@ -71,7 +71,7 @@ int main(int argc, char** argv)
 
     fprintf(stderr, "Text: |%s|\n", text);
 
-    paraglob_t pg = paraglob_create(PARAGLOB_ASCII);
+    paraglob_t pg = paraglob_create(PARAGLOB_ASCII, match_callback, (debug ? stderr : 0));
 
     if ( ! pg )
         error("cannot allocate paraglob structure", 0);
@@ -94,14 +94,14 @@ int main(int argc, char** argv)
     fprintf(stderr, "%d patterns read\n", cnt);
 
     if ( ! paraglob_compile(pg) )
-        error("compile error", 0);
+        error("compile error", paraglob_strerror(pg));
 
     if ( debug )
-        paraglob_dump_debug(pg, stderr);
+        paraglob_dump_debug(pg);
 
-    uint64_t matches = paraglob_match(pg, strlen(text), text, match_callback);
+    uint64_t matches = paraglob_match(pg, strlen(text), text);
 
-    fprintf(stdout, "%" PRIu64 " matches found\n", matches);
+    fprintf(stdout, "\n%" PRIu64 " matches found\n", matches);
 
     paraglob_delete(pg);
 
