@@ -7,6 +7,8 @@
 #include <stdio.h>
 #include <stdint.h>
 
+#define PARAGLOB_VERSION "0.01"
+
 struct __paraglob_t;
 typedef struct __paraglob* paraglob_t;
 
@@ -15,7 +17,7 @@ enum paraglob_error    { PARAGLOB_ERROR_NONE = 0, PARAGLOB_ERROR_AC, PARAGLOB_ER
 
 typedef void paraglob_match_callback(uint64_t pattern_len, const char* pattern, void* cookie);
 
-paraglob_t paraglob_create(enum paraglob_encoding encoding, paraglob_match_callback* callback, FILE* debug);
+paraglob_t paraglob_create(enum paraglob_encoding encoding, paraglob_match_callback* callback);
 
 int        paraglob_insert(paraglob_t pg, uint64_t len, const char* pattern, void* cookie);
 
@@ -29,6 +31,7 @@ uint64_t   paraglob_match_end(paraglob_t pg);
 
 void       paraglob_delete(paraglob_t pg);
 
+void       paraglob_enable_debug(paraglob_t pg, FILE* debug);
 void       paraglob_dump_debug(paraglob_t pg);
 
 const char* paraglob_strerror(paraglob_t pg);

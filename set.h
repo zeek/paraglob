@@ -82,6 +82,12 @@ static inline void set_##name##_delete(set_##name* set)                        \
     free(set);                                                                 \
 }                                                                              \
                                                                                \
+static inline void set_##name##_clear(set_##name* set)                         \
+{                                                                              \
+    set_##name##_resize(set, SET_DEFAULT_SIZE);                                \
+    set->size = 0;                                                             \
+}                                                                              \
+                                                                               \
 static inline set_##name* set_##name##_copy(set_##name* set)                   \
 {                                                                              \
     set_##name* copy = set_##name##_create(set->max);                          \
@@ -127,6 +133,15 @@ static inline set_size_t set_##name##_contains(set_##name* set, set_elem_t elem)
     }                                                                          \
                                                                                \
     return 0;                                                                  \
+}                                                                              \
+                                                                               \
+static inline set_elem_t set_##name##_get(set_##name* set, set_elem_t elem)    \
+{                                                                              \
+    set_size_t idx = set_##name##_contains(set, elem);                         \
+    if ( ! idx )                                                               \
+        return 0;                                                              \
+    else                                                                       \
+        return set->elems[idx-1];                                              \
 }                                                                              \
                                                                                \
 static inline set_size_t set_##name##_size(set_##name* set)                    \

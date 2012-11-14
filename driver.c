@@ -6,18 +6,33 @@
 #include <stdlib.h>
 #include <string.h>
 #include <errno.h>
+#include <assert.h>
 
 #include "paraglob.h"
 
+static const char *text = 0;
+
 void usage(int rc)
 {
+    fprintf(stderr, "paraglob v" PARAGLOB_VERSION "\n");
     fprintf(stderr, "\n");
-    fprintf(stderr, "paraglob [options] <text> <patterns\n");
+    fprintf(stderr, "paraglob [options] <text> <patterns>\n");
+    fprintf(stderr, "paraglob [options] <text>\n");
+    fprintf(stderr, "\n");
+    fprintf(stderr, "The 2nd variant reads patterns as lines from stdin.\n");
+    fprintf(stderr, "\n");
+    fprintf(stderr, "Patterns can contain wildcards '*' and '?'.\n");
     fprintf(stderr, "\n");
     fprintf(stderr, "  Options:\n");
     fprintf(stderr, "\n");
-    fprintf(stderr, "     -d Dump debugging output to stderr.\n");
-    fprintf(stderr, "     -h This help.\n");
+    fprintf(stderr, "     -b a/b/c Benchmark mode. See below.\n");
+    fprintf(stderr, "     -d       Dump debugging output to stderr.\n");
+    fprintf(stderr, "     -h       This help.\n");
+    fprintf(stderr, "\n");
+    fprintf(stderr, "  Benchmark mode parameters:\n");
+    fprintf(stderr, "     a: Number of patterns to generate.\n");
+    fprintf(stderr, "     b: Number of queries to perform.\n");
+    fprintf(stderr, "     c: Approx. percentage of queries passing the initial AC stage (integer only)\n");
     fprintf(stderr, "\n");
     exit(rc);
 }
@@ -37,17 +52,184 @@ void match_callback(uint64_t pattern_len, const char* pattern, void *cookie)
     memcpy(buffer, pattern, pattern_len);
     buffer[pattern_len] = '\0';
 
-    fprintf(stderr, "Match with |%s| (cookie %" PRIu64 ")", buffer, (uint64_t)cookie);
+    assert(text);
+    fprintf(stderr, "%s matches %s\n", text, buffer);
+}
+
+static const char* benchmark_pattern_words[] = {
+    "aaaaaa", "bb", "cccccccccccccccc", "ddddd", "eeeeeeeee", "fffffffffffff", "gggg"
+};
+
+static struct rusage timer_state;
+
+struct timer_result {
+    double time;
+    long mem;
+};
+
+void timer_start()
+{
+    if ( getrusage(RUSAGE_SELF, &timer_state) < 0 )
+        error("getrusage failed", strerror(errno));
+}
+
+struct timer_result timer_end()
+{
+    struct rusage r;
+
+    if ( getrusage(RUSAGE_SELF, &r) < 0 )
+        error("getrusage failed", strerror(errno));
+
+    double t1 = (double)(timer_state.ru_utime.tv_sec) + (double)(timer_state.ru_utime.tv_usec) / 1e6;
+    double t2 = (double)(r.ru_utime.tv_sec) + (double)(r.ru_utime.tv_usec) / 1e6;
+
+    struct timer_result t;
+    t.time = t2 - t1;
+    t.mem = r.ru_maxrss - timer_state.ru_maxrss;
+
+    return t;
+}
+
+const char* random_pattern_word()
+{
+    int idx = rand() % (sizeof(benchmark_pattern_words) / sizeof(const char*));
+    return benchmark_pattern_words[idx];
+}
+
+void benchmark(const char* params, int debug)
+{
+    srand(time(0));
+
+    if ( ! (params && strlen(params)) )
+        error("no benchmark parameters given", 0);
+
+    // Parse parameters.
+    long num_patterns = strtol(params, (char **)&params, 10);
+    if ( ! *params++ )
+        error("cannot parse benchmark parameter 1", 0);
+
+    long num_queries = strtol(params, (char **)&params, 10);
+    if ( ! *params++ )
+        error("cannot parse benchmark parameter 2", 0);
+
+    long match_prob = strtol(params, (char **)&params, 10);
+    if ( *params )
+        error("cannot parse benchmark parameter 3", 0);
+
+    if ( debug )
+        fprintf(stderr, "Benchmark parameters: patterns=%ld queries=%ld match_prob=%ld\n",
+                num_patterns, num_queries, match_prob);
+
+    // Create the patterns.
+    const char* patterns[num_patterns];
+    char buffer[1024];
+    int i, j;
+
+    for ( i = 0; i < num_patterns; i++ ) {
+
+        buffer[0] = '\0';
+
+        int rounds = (rand() % 10) + 2;
+        for ( j = 0; j < rounds; j++ ) {
+
+            if ( j != 0 )
+                strcat(buffer, "*");
+
+            strcat(buffer, random_pattern_word());
+        }
+
+        patterns[i] = strdup(buffer);
+
+        if ( debug )
+            fprintf(stderr, "pattern %d: %s\n", i, patterns[i]);
+    }
+
+    // Create the queries.
+
+    const char* queries[num_queries];
+
+    for ( i = 0; i < num_queries; i++ ) {
+
+        buffer[0] = '\0';
+
+        if ( (rand() % 100) <= match_prob ) {
+            // Create a likely match candidate.
+            int rounds = (rand() % 5) + 1;
+            for ( j = 0; j < rounds; j++ ) {
+                strcat(buffer, random_pattern_word());
+            }
+        }
+
+        else {
+            // Create a mismatch.
+            int rounds = (rand() % 50) + 5;
+            for ( j = 0; j < rounds; j++ ) {
+                buffer[j] = (char)((rand() % 26) + 'a');
+            }
+
+            buffer[rounds] = '\0';
+        }
+
+        queries[i] = strdup(buffer);
+    }
+
+    // Create the paraglob.
+
+    paraglob_t pg = paraglob_create(PARAGLOB_ASCII, 0);
+
+    if ( ! pg )
+        error("cannot allocate paraglob structure", 0);
+
+    for ( i = 0; i < num_patterns; i++ ) {
+        if ( ! paraglob_insert(pg, strlen(patterns[i]), patterns[i], (void*)(intptr_t)i) )
+            error("pattern error", buffer);
+    }
+
+    if ( ! paraglob_compile(pg) ) {
+        // We ignore duplicate patterns, that can happen.
+        if ( strstr(paraglob_strerror(pg), "duplicate") == 0 )
+            error("compile error", paraglob_strerror(pg));
+    }
+
+    // Do the matching.
+
+    timer_start();
+
+    int matches = 0;
+
+    for ( i = 0; i < num_queries; i++ ) {
+        uint64_t m = paraglob_match(pg, strlen(queries[i]), queries[i]);
+
+        if ( debug )
+            fprintf(stderr, "query: %s (%" PRIu64 " matches)\n", queries[i], m);
+
+        if ( m )
+            ++matches;
+    }
+
+    struct timer_result t = timer_end();
+
+    //
+
+    fprintf(stderr, "time=%.2f mem=%ld matches=%.2f%%\n", t.time, t.mem, (100.0 * matches / num_queries));
+
+    paraglob_delete(pg);
+    return;
 }
 
 int main(int argc, char** argv)
 {
+    const char* bench_params = 0;
     int debug = 0;
 
     char c;
 
-    while ( (c = getopt(argc, argv, "d")) != -1 ) {
+    while ( (c = getopt(argc, argv, "dhb:")) != -1 ) {
         switch ( c ) {
+         case 'b':
+            bench_params = optarg;
+            break;
+
          case 'd':
             debug = 1;
             break;
@@ -64,46 +246,80 @@ int main(int argc, char** argv)
     argc -= optind;
     argv += optind;
 
-    if ( argc != 1 )
+    if ( bench_params ) {
+        if ( argc > 0 )
+            usage(1);
+
+        benchmark(bench_params, debug);
+        exit(0);
+    }
+
+    if ( argc < 1 )
         usage(1);
 
-    const char* text = argv[0];
+    text = argv[0];
 
-    fprintf(stderr, "Text: |%s|\n", text);
+    if ( debug )
+        fprintf(stderr, "Text: |%s|\n", text);
 
-    paraglob_t pg = paraglob_create(PARAGLOB_ASCII, match_callback, (debug ? stderr : 0));
+    paraglob_t pg = paraglob_create(PARAGLOB_ASCII, match_callback);
 
     if ( ! pg )
         error("cannot allocate paraglob structure", 0);
 
-    char buffer[1024];
-    int cnt = 0;
+    if ( debug )
+        paraglob_enable_debug(pg, stderr);
 
-    while ( 1 ) {
-        if ( ! fgets(buffer, sizeof(buffer), stdin) ) {
-            if ( feof(stdin) )
-                break;
+    intptr_t cnt = 0;
 
-            error("read error from standard input: ", strerror(errno));
+    if ( argc > 1 ) {
+        int i;
+        for ( i = 1; i < argc; i++ ) {
+            if ( ! paraglob_insert(pg, strlen(argv[i]), argv[i], (void*)++cnt) )
+                error("pattern error", argv[i]);
         }
-
-        if ( ! paraglob_insert(pg, strlen(buffer) - 1, buffer, (void*)++cnt) )
-            error("pattern error", buffer);
     }
 
-    fprintf(stderr, "%d patterns read\n", cnt);
+    else {
+        char buffer[1024];
 
-    if ( ! paraglob_compile(pg) )
-        error("compile error", paraglob_strerror(pg));
+        while ( 1 ) {
+            if ( ! fgets(buffer, sizeof(buffer), stdin) ) {
+                if ( feof(stdin) )
+                    break;
+
+                error("read error from standard input: ", strerror(errno));
+            }
+
+            if ( ! paraglob_insert(pg, strlen(buffer) - 1, buffer, (void*)++cnt) )
+                error("pattern error", buffer);
+        }
+    }
 
     if ( debug )
+        fprintf(stderr, "%" PRIiPTR " patterns\n", cnt);
+
+    if ( ! paraglob_compile(pg) ) {
+        if ( debug )
+            paraglob_dump_debug(pg);
+
+        error("compile error", paraglob_strerror(pg));
+    }
+
+    if ( debug ) {
         paraglob_dump_debug(pg);
+        fprintf(stderr, "\n");
+    }
 
     uint64_t matches = paraglob_match(pg, strlen(text), text);
 
-    fprintf(stdout, "\n%" PRIu64 " matches found\n", matches);
+    if ( debug )
+        fprintf(stdout, "\n%" PRIu64 " matches found\n", matches);
 
     paraglob_delete(pg);
 
-    exit(0);
+    if ( matches > 0 )
+        return 0;
+    else
+        return 1;
 }

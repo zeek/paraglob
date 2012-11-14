@@ -266,10 +266,10 @@ void ac_automata_display (AC_AUTOMATA_t * thiz, char repcast)
 		{
 			e = &n->outgoing[j];
 			printf("         |----(");
-			if(isgraph((char)e->alpha))
-				printf("%c)---", (char)e->alpha);
+			if(isgraph((char)(intptr_t)e->alpha))
+				printf("%c)---", (char)(intptr_t)e->alpha);
 			else
-				printf("0x%x)", (char)e->alpha);
+				printf("0x%x)", (char)(intptr_t)e->alpha);
 			printf("--> NODE(%3d)\n", e->next->id);
 		}
 		if (n->matched_patterns_num) {
@@ -284,7 +284,7 @@ void ac_automata_display (AC_AUTOMATA_t * thiz, char repcast)
 					printf("%" PRIu64 "", sid.rep.number);
 					break;
 				case 's':
-					printf("%s", sid.rep.stringy);
+					printf("%p", sid.rep.stringy);
 					break;
 				}
 			}

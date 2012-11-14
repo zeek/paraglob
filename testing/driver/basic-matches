@@ -1,0 +1,4 @@
+
+@TEST-EXEC:      paraglob abcXXXdef abc*def
+
+@TEST-EXEC-FAIL: paraglob abcXdef abcdef

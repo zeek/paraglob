@@ -1,6 +1,17 @@
 
-all:
-	clang -g -O0 driver.c paraglob.c multifast-ac/ahocorasick.c multifast-ac/node.c -o paraglob
+all: debug
+
+release:
+	( test -d build || (mkdir build && cd build && cmake .. -DCMAKE_BUILD_TYPE=Release) )
+	( cd build && make )
+
+
+debug:
+	( test -d build || (mkdir build && cd build && cmake .. -DCMAKE_BUILD_TYPE=Release) )
+	( cd build && make )
+
+test:
+	( cd testing && btest )
 
 clean:
-	rm paraglob
+	rm -rf build

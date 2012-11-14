@@ -55,6 +55,7 @@ struct __paraglob {
     AC_ERROR_t ac_error;
 
     uint64_t matches;
+    set_word* matching_words;
     char* needle;
     uint64_t needle_len;
     int needle_free;
@@ -69,11 +70,15 @@ static set_word* _computeWords(paraglob_t pg, uint64_t len, const char* data)
     const char* s = data;
     const char* t = data;
 
+    const char* separators = "*?";
+
     while ( t < (data + len + 1) ) {
 
-        if ( *t != '*' && t < (data + len) ) {
-            ++t;
-            continue;
+        if ( t < (data + len) ) {
+            if ( (strchr(separators, *t) == 0) && (t == data || t[-1] != '\\') ) {
+                ++t;
+                continue;
+            }
         }
 
         if ( s != t ) {
@@ -82,7 +87,18 @@ static set_word* _computeWords(paraglob_t pg, uint64_t len, const char* data)
             pg_word* word = malloc(sizeof(pg_word) + len);
             word->len = len;
             memcpy(&word->data, s, t - s);
-            set_word_insert(words, word);
+
+            pg_word* cur_word = set_word_get(pg->words, word);
+            if ( cur_word ) {
+                set_word_insert(words, cur_word);
+                free(word);
+            }
+
+            else {
+                set_word_insert(words, word);
+                set_word_insert(pg->words, word);
+            }
+
         }
 
         ++t;
@@ -115,7 +131,8 @@ static void _verify_match(paraglob_t pg, pg_pattern* p)
         if ( pg->debug )
             fprintf(stderr, "==> Match found!\n");
 
-        // TODO: Call callback.
+        if ( pg->callback )
+            pg->callback(p->len, p->data, p->cookie);
 
         ++pg->matches;
     }
@@ -125,25 +142,20 @@ static int _ac_chars_match_callback(AC_MATCH_t *match, void * cookie)
 {
     paraglob_t pg = (paraglob_t) cookie;
 
-    for ( int i = 0; i < match->match_num; i++ ) {
+    int i;
+
+    for ( i = 0; i < match->match_num; i++ ) {
 
         pg_word* w = (pg_word*)match->patterns[i].rep.stringy;
+        AC_ALPHABET_t a = (AC_ALPHABET_t)w;
 
         if ( pg->debug ) {
             fprintf(pg->debug, "Word match: |");
             _safe_print(pg->debug, w->len, w->data);
-            fprintf(pg->debug, "|\n");
+            fprintf(pg->debug, "| (%p)\n", a);
         }
 
-        AC_TEXT_t t;
-        AC_ALPHABET_t a = (AC_ALPHABET_t)w;
-        t.astring = &a;
-        t.length = 1;
-
-        if ( ac_automata_search (pg->ac_words, &t, pg) < 0 ) {
-            pg->error = PARAGLOB_ERROR_NOT_COMPILED;
-            return 1;
-        }
+        set_word_insert(pg->matching_words, w);
     }
 
     return 0;
@@ -153,7 +165,8 @@ int _ac_words_match_callback(AC_MATCH_t *match, void * cookie)
 {
     paraglob_t pg = (paraglob_t) cookie;
 
-    for ( int i = 0; i < match->match_num; i++ )
+    int i;
+    for ( i = 0; i < match->match_num; i++ )
         _verify_match(pg, match->patterns[i].rep.stringy);
 
     return 0;
@@ -166,8 +179,9 @@ static int _ac_build(paraglob_t pg)
     set_for_each(word, pg->words, w) {
 
         AC_ALPHABET_t* data = malloc(w->len * sizeof(AC_ALPHABET_t));
-        for ( int i = 0; i < w->len; i++ )
-            data[i] = (AC_ALPHABET_t)w->data[i];
+        int i;
+        for ( i = 0; i < w->len; i++ )
+            data[i] = (AC_ALPHABET_t)(intptr_t)w->data[i];
 
         AC_PATTERN_t p;
         p.astring = data;
@@ -212,7 +226,7 @@ static int _ac_build(paraglob_t pg)
     return 1;
 }
 
-paraglob_t paraglob_create(enum paraglob_encoding encoding, paraglob_match_callback* callback, FILE* debug)
+paraglob_t paraglob_create(enum paraglob_encoding encoding, paraglob_match_callback* callback)
 {
     paraglob_t pg = calloc(sizeof(struct __paraglob), 1);
 
@@ -224,11 +238,12 @@ paraglob_t paraglob_create(enum paraglob_encoding encoding, paraglob_match_callb
     pg->patterns = vec_pattern_create(0);
     pg->words = set_word_create(0);
     pg->error = PARAGLOB_ERROR_NONE;
-    pg->debug = debug;
+    pg->debug = 0;
     pg->ac_chars = 0;
     pg->ac_words = 0;
     pg->ac_error = ACERR_SUCCESS;
     pg->matches = 0;
+    pg->matching_words = 0;
     pg->needle = 0;
     pg->needle_len = 0;
     pg->needle_free = 0;
@@ -271,8 +286,6 @@ int paraglob_insert(paraglob_t pg, uint64_t len, const char* data, void* cookie)
 
     vec_pattern_append(pg->patterns, p);
 
-    set_word_join(pg->words, words);
-
     return (p->words != 0);
 }
 
@@ -289,7 +302,7 @@ uint64_t paraglob_match(paraglob_t pg, uint64_t len, const char* needle)
     if ( ! paraglob_match_begin(pg) )
         return 0;
 
-    if (! paraglob_match_next(pg, len, needle) )
+    if ( ! paraglob_match_next(pg, len, needle) )
         return 0;
 
     return paraglob_match_end(pg);
@@ -310,6 +323,11 @@ int paraglob_match_begin(paraglob_t pg)
     pg->needle_len = 0;
     pg->needle_free = 0;
 
+    if ( ! pg->matching_words )
+        pg->matching_words = set_word_create(0);
+    else
+        set_word_clear(pg->matching_words);
+
     return 1;
 }
 
@@ -318,10 +336,12 @@ int paraglob_match_next(paraglob_t pg, uint64_t len, const char* needle)
     pg->needle = realloc(pg->needle, pg->needle_len + len);
     memcpy(pg->needle + pg->needle_len, needle, len);
     pg->needle_free = 1;
-    
+
     while ( len-- ) {
+        intptr_t i = *needle++;
+
         AC_TEXT_t t;
-        AC_ALPHABET_t n = (AC_ALPHABET_t)*needle++;
+        AC_ALPHABET_t n = (AC_ALPHABET_t)i;
         t.astring = (AC_ALPHABET_t) &n;
         t.length = 1;
 
@@ -336,6 +356,22 @@ int paraglob_match_next(paraglob_t pg, uint64_t len, const char* needle)
 
 uint64_t paraglob_match_end(paraglob_t pg)
 {
+    int m = set_word_size(pg->matching_words);
+    pg_word* wmatches[m];
+
+    int i = 0;
+    set_for_each(word, pg->matching_words, w)
+        wmatches[i++] = w;
+
+    AC_TEXT_t t;
+    t.astring = (AC_ALPHABET_t*) &wmatches;
+    t.length = m;
+
+    if ( ac_automata_search (pg->ac_words, &t, pg) < 0 ) {
+        pg->error = PARAGLOB_ERROR_NOT_COMPILED;
+        return 1;
+    }
+
     return pg->matches;
 }
 
@@ -373,6 +409,11 @@ const char* paraglob_strerror(paraglob_t pg)
      default:
         return "unknown error";
     }
+}
+
+void paraglob_enable_debug(paraglob_t pg, FILE* debug)
+{
+    pg->debug = debug;
 }
 
 void paraglob_dump_debug(paraglob_t pg)
@@ -423,7 +464,5 @@ void paraglob_dump_debug(paraglob_t pg)
 
     else
         fprintf(pg->debug, "Aho-Corasick: not compiled yet\n");
-
-    fprintf(pg->debug, "\n");
 }
 
