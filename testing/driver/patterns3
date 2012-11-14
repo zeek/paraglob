@@ -1,0 +1,11 @@
+@TEST-EXEC: cat %INPUT | grep -v @TEST | paraglob ccccccccccccccccaaaaaaeeeeeeeeeccccccccccccccccgggg
+bb*fffffffffffff*eeeeeeeee*ddddd
+bb*eeeeeeeee*aaaaaa*ddddd*aaaaaa*aaaaaa
+cccccccccccccccc*cccccccccccccccc*gggg
+gggg*bb*ddddd*fffffffffffff*aaaaaa*fffffffffffff*cccccccccccccccc*fffffffffffff*fffffffffffff*bb*eeeeeeeee
+ddddd*bb*ddddd*cccccccccccccccc*bb*eeeeeeeee*gggg*cccccccccccccccc*ddddd*gggg
+ddddd*bb*gggg*fffffffffffff*aaaaaa*fffffffffffff*fffffffffffff*eeeeeeeee*ddddd*fffffffffffff*eeeeeeeee
+aaaaaa*aaaaaa
+cccccccccccccccc*cccccccccccccccc
+aaaaaa*cccccccccccccccc*aaaaaa*aaaaaa*fffffffffffff*gggg*ddddd*aaaaaa*gggg*cccccccccccccccc
+fffffffffffff*gggg*aaaaaa*aaaaaa*cccccccccccccccc

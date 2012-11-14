@@ -26,6 +26,7 @@ void usage(int rc)
     fprintf(stderr, "  Options:\n");
     fprintf(stderr, "\n");
     fprintf(stderr, "     -b a/b/c Benchmark mode. See below.\n");
+    fprintf(stderr, "     -v       In benchmark mode, verify results.\n");
     fprintf(stderr, "     -d       Dump debugging output to stderr.\n");
     fprintf(stderr, "     -h       This help.\n");
     fprintf(stderr, "\n");
@@ -96,7 +97,7 @@ const char* random_pattern_word()
     return benchmark_pattern_words[idx];
 }
 
-void benchmark(const char* params, int debug)
+void benchmark(const char* params, int debug, int verify)
 {
     srand(time(0));
 
@@ -193,6 +194,11 @@ void benchmark(const char* params, int debug)
 
     // Do the matching.
 
+    int matching_queries[num_queries];
+
+    for ( i = 0; i < num_queries; i++ )
+        matching_queries[i] = 0;
+
     timer_start();
 
     int matches = 0;
@@ -203,15 +209,52 @@ void benchmark(const char* params, int debug)
         if ( debug )
             fprintf(stderr, "query: %s (%" PRIu64 " matches)\n", queries[i], m);
 
-        if ( m )
+        if ( m ) {
             ++matches;
+            matching_queries[i] = 1;
+        }
     }
 
     struct timer_result t = timer_end();
 
     //
 
-    fprintf(stderr, "time=%.2f mem=%ld matches=%.2f%%\n", t.time, t.mem, (100.0 * matches / num_queries));
+    fprintf(stderr, "time=%.2f mem=%ld matches=%.2f%% queries/sec=%.2f (paraglob)\n",
+            t.time, t.mem, (100.0 * matches / num_queries), num_queries / t.time);
+
+    //
+
+    if ( verify ) {
+        fprintf(stderr, "Verifying ...\n");
+
+        timer_start();
+
+        int brute_force_matches = 0;
+
+        for ( j = 0; j < num_queries; j++ ) {
+
+            int match = 0;
+
+            for ( i = 0; i < num_patterns; i++ ) {
+                if ( fnmatch(patterns[i], queries[j]) == 0 ) {
+                    ++brute_force_matches;
+                    match = 1;
+                    break;
+                }
+            }
+
+            if ( match && ! matching_queries[j] )
+                fprintf(stderr, "   Mismatch for query |%s|\n", queries[j]);
+        }
+
+        t = timer_end();
+
+        if ( matches == brute_force_matches )
+            fprintf(stderr, "   Same number of matches\n");
+
+        fprintf(stderr, "time=%.2f mem=%ld matches=%.2f%% queries/sec=%.2f (brute-force)\n",
+                t.time, t.mem, (100.0 * brute_force_matches / num_queries), num_queries / t.time);
+    }
 
     paraglob_delete(pg);
     return;
@@ -221,10 +264,11 @@ int main(int argc, char** argv)
 {
     const char* bench_params = 0;
     int debug = 0;
+    int verify = 0;
 
     char c;
 
-    while ( (c = getopt(argc, argv, "dhb:")) != -1 ) {
+    while ( (c = getopt(argc, argv, "dhvb:")) != -1 ) {
         switch ( c ) {
          case 'b':
             bench_params = optarg;
@@ -232,6 +276,10 @@ int main(int argc, char** argv)
 
          case 'd':
             debug = 1;
+            break;
+
+         case 'v':
+            verify = 1;
             break;
 
          case 'h':
@@ -250,7 +298,7 @@ int main(int argc, char** argv)
         if ( argc > 0 )
             usage(1);
 
-        benchmark(bench_params, debug);
+        benchmark(bench_params, debug, verify);
         exit(0);
     }
 

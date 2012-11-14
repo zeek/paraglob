@@ -1,4 +1,5 @@
-@TEST-EXEC: cat %INPUT | grep -v @TEST | paraglob rmqknnqbpfzfsyuarcsulnvdilnss
+@TEST-EXEC: cat %INPUT | grep -v @TEST | paraglob dddddAAAbbAAAeeeeeeeeeAAAAbbAAAbb
+@TEST-EXEC-FAIL: cat %INPUT | grep -v @TEST | paraglob kjhdfkjhdkjhsf
 gggg*eeeeeeeee*fffffffffffff*ddddd*aaaaaa*eeeeeeeee*aaaaaa*ddddd
 bb*aaaaaa*ddddd*bb*fffffffffffff*aaaaaa*gggg*cccccccccccccccc
 eeeeeeeee*fffffffffffff*bb*gggg*aaaaaa*gggg*ddddd*bb*eeeeeeeee*eeeeeeeee

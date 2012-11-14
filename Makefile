@@ -7,7 +7,7 @@ release:
 
 
 debug:
-	( test -d build || (mkdir build && cd build && cmake .. -DCMAKE_BUILD_TYPE=Release) )
+	( test -d build || (mkdir build && cd build && cmake .. -DCMAKE_BUILD_TYPE=Debug) )
 	( cd build && make )
 
 test:
