@@ -82,9 +82,11 @@ static inline void set_##name##_delete(set_##name* set)                        \
     free(set);                                                                 \
 }                                                                              \
                                                                                \
-static inline void set_##name##_clear(set_##name* set)                         \
+static inline void set_##name##_clear(set_##name* set, int keep_size)          \
 {                                                                              \
-    set_##name##_resize(set, SET_DEFAULT_SIZE);                                \
+    if ( ! keep_size )                                                         \
+        set_##name##_resize(set, SET_DEFAULT_SIZE);                            \
+                                                                               \
     set->size = 0;                                                             \
 }                                                                              \
                                                                                \
@@ -133,6 +135,16 @@ static inline set_size_t set_##name##_contains(set_##name* set, set_elem_t elem)
     }                                                                          \
                                                                                \
     return 0;                                                                  \
+}                                                                              \
+                                                                               \
+static inline int set_##name##_is_subset(set_##name* set1, set_##name* set2)   \
+{                                                                              \
+    set_size_t i;                                                              \
+    for ( i = 0; i < set1->size; i++ ) {                                       \
+        if ( ! set_##name##_contains(set2, set1->elems[i]) )                   \
+            return 0;                                                          \
+    }                                                                          \
+    return 1;                                                                  \
 }                                                                              \
                                                                                \
 static inline set_elem_t set_##name##_get(set_##name* set, set_elem_t elem)    \

@@ -25,14 +25,11 @@ int        paraglob_compile(paraglob_t pg);
 
 uint64_t   paraglob_match(paraglob_t pg, uint64_t len, const char* needle);
 
-int        paraglob_match_begin(paraglob_t pg);
-int        paraglob_match_next(paraglob_t pg, uint64_t len, const char* needle);
-uint64_t   paraglob_match_end(paraglob_t pg);
-
 void       paraglob_delete(paraglob_t pg);
 
 void       paraglob_enable_debug(paraglob_t pg, FILE* debug);
 void       paraglob_dump_debug(paraglob_t pg);
+void       paraglob_stats(paraglob_t pg, uint64_t* fnmatches);
 
 const char* paraglob_strerror(paraglob_t pg);
 

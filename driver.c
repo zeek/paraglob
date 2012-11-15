@@ -97,6 +97,21 @@ const char* random_pattern_word()
     return benchmark_pattern_words[idx];
 }
 
+const char* random_word()
+{
+    static char buffer[1024];
+
+    int j;
+    int rounds = (rand() % 25) + 5;
+    for ( j = 0; j < rounds; j++ ) {
+        buffer[j] = (char)((rand() % 26) + 'a');
+    }
+
+    buffer[rounds] = '\0';
+
+    return buffer;
+}
+
 void benchmark(const char* params, int debug, int verify)
 {
     srand(time(0));
@@ -121,6 +136,8 @@ void benchmark(const char* params, int debug, int verify)
         fprintf(stderr, "Benchmark parameters: patterns=%ld queries=%ld match_prob=%ld\n",
                 num_patterns, num_queries, match_prob);
 
+    fprintf(stderr, "Creating workload ...\n");
+
     // Create the patterns.
     const char* patterns[num_patterns];
     char buffer[1024];
@@ -136,7 +153,10 @@ void benchmark(const char* params, int debug, int verify)
             if ( j != 0 )
                 strcat(buffer, "*");
 
-            strcat(buffer, random_pattern_word());
+            if ( (rand() % 10) == 0 )
+                strcat(buffer, random_pattern_word());
+            else
+                strcat(buffer, random_word());
         }
 
         patterns[i] = strdup(buffer);
@@ -176,6 +196,8 @@ void benchmark(const char* params, int debug, int verify)
 
     // Create the paraglob.
 
+    fprintf(stderr, "Creating paraglob ...\n");
+
     paraglob_t pg = paraglob_create(PARAGLOB_ASCII, 0);
 
     if ( ! pg )
@@ -194,6 +216,8 @@ void benchmark(const char* params, int debug, int verify)
 
     // Do the matching.
 
+    fprintf(stderr, "Matching ...\n");
+
     int matching_queries[num_queries];
 
     for ( i = 0; i < num_queries; i++ )
@@ -201,13 +225,18 @@ void benchmark(const char* params, int debug, int verify)
 
     timer_start();
 
-    int matches = 0;
+    uint64_t matches = 0;
+    uint64_t fnmatches = 0;
 
     for ( i = 0; i < num_queries; i++ ) {
         uint64_t m = paraglob_match(pg, strlen(queries[i]), queries[i]);
 
+        uint64_t fnm = 0;
+        paraglob_stats(pg, &fnm);
+        fnmatches += fnm;
+
         if ( debug )
-            fprintf(stderr, "query: %s (%" PRIu64 " matches)\n", queries[i], m);
+            fprintf(stderr, "query: %s (%" PRIu64 " matches, %" PRIu64 " calls to fnmatch())\n", queries[i], m, fnm);
 
         if ( m ) {
             ++matches;
@@ -219,13 +248,15 @@ void benchmark(const char* params, int debug, int verify)
 
     //
 
-    fprintf(stderr, "time=%.2f mem=%ld matches=%.2f%% queries/sec=%.2f (paraglob)\n",
-            t.time, t.mem, (100.0 * matches / num_queries), num_queries / t.time);
+    fprintf(stderr, "time=%.2f mem=%ld matches=%" PRIu64 "/%.2f%% fnmatches=%" PRIu64 "/%.2f%% queries/sec=%.2f\n",
+            t.time, t.mem, matches, (100.0 * matches / num_queries), fnmatches, 100.0 * fnmatches / (num_queries * num_patterns), num_queries / t.time);
 
     //
 
     if ( verify ) {
-        fprintf(stderr, "Verifying ...\n");
+        int mismatches = 0;
+
+        fprintf(stderr, "Verifying ...");
 
         timer_start();
 
@@ -243,14 +274,23 @@ void benchmark(const char* params, int debug, int verify)
                 }
             }
 
-            if ( match && ! matching_queries[j] )
+            if ( match && ! matching_queries[j] ) {
+                if ( ! mismatches )
+                    fprintf(stderr, "\n");
+
                 fprintf(stderr, "   Mismatch for query |%s|\n", queries[j]);
+
+                ++mismatches;
+            }
         }
 
         t = timer_end();
 
         if ( matches == brute_force_matches )
-            fprintf(stderr, "   Same number of matches\n");
+            fprintf(stderr, " Ok\n");
+
+        uint64_t fnmatches = 0;
+        paraglob_stats(pg, &fnmatches);
 
         fprintf(stderr, "time=%.2f mem=%ld matches=%.2f%% queries/sec=%.2f (brute-force)\n",
                 t.time, t.mem, (100.0 * brute_force_matches / num_queries), num_queries / t.time);
@@ -361,8 +401,11 @@ int main(int argc, char** argv)
 
     uint64_t matches = paraglob_match(pg, strlen(text), text);
 
+    uint64_t fnmatches = 0;
+    paraglob_stats(pg, &fnmatches);
+
     if ( debug )
-        fprintf(stdout, "\n%" PRIu64 " matches found\n", matches);
+        fprintf(stdout, "\n%" PRIu64 " matches found with %" PRIu64 " calls to fnmatch().\n", matches, fnmatches);
 
     paraglob_delete(pg);
 

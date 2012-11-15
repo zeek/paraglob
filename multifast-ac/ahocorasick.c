@@ -22,7 +22,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
-#include <inttypes.h>
 
 #include "ahocorasick.h"
 
@@ -266,10 +265,10 @@ void ac_automata_display (AC_AUTOMATA_t * thiz, char repcast)
 		{
 			e = &n->outgoing[j];
 			printf("         |----(");
-			if(isgraph((char)(intptr_t)e->alpha))
-				printf("%c)---", (char)(intptr_t)e->alpha);
+			if(isgraph(e->alpha))
+				printf("%c)---", e->alpha);
 			else
-				printf("0x%x)", (char)(intptr_t)e->alpha);
+				printf("0x%x)", e->alpha);
 			printf("--> NODE(%3d)\n", e->next->id);
 		}
 		if (n->matched_patterns_num) {
@@ -281,10 +280,10 @@ void ac_automata_display (AC_AUTOMATA_t * thiz, char repcast)
 				switch (repcast)
 				{
 				case 'n':
-					printf("%" PRIu64 "", sid.rep.number);
+					printf("%ld", sid.rep.number);
 					break;
 				case 's':
-					printf("%p", sid.rep.stringy);
+					printf("%s", sid.rep.stringy);
 					break;
 				}
 			}

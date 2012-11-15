@@ -11,12 +11,69 @@
 
 #include "multifast-ac/ahocorasick.h"
 
-struct _pg_word {
+struct _pg_word;
+struct _pg_meta_word;
+struct _pg_pattern;
+
+static int _compare_meta_words(struct _pg_meta_word* w1, struct _pg_meta_word* w2);
+static int _compare_uint64(const void* u1, const void* u2);
+static int _compare_words(struct _pg_word* w1, struct _pg_word* w2);
+
+DECLARE_SET(meta_word, struct _pg_meta_word*, uint64_t, _compare_meta_words)
+DECLARE_SET(pattern, struct _pg_pattern*, uint64_t,  SET_STD_EQUAL);
+DECLARE_SET(word, struct _pg_word*, uint64_t, _compare_words)
+DECLARE_VECTOR(pattern, struct _pg_pattern*, uint64_t);
+DECLARE_VECTOR(word, struct _pg_word*, uint64_t)
+
+struct _pg_meta_word {
+    set_word* words;
+    vec_pattern* patterns;
+};
+
+struct _pg_pattern {
+    set_word* words;
+    void *cookie;
     uint64_t len;
     char data[];
 };
 
+struct _pg_word {
+    set_meta_word* meta_words; // Meta words that contain this word.
+    uint64_t len;
+    char data[];
+};
+
+struct __paraglob {
+    // Configuration.
+    enum paraglob_encoding encoding;
+    paraglob_match_callback* callback;
+    FILE* debug;
+
+    // Compile-time state.
+    vec_pattern* patterns;
+    set_word* words;
+    set_meta_word* meta_words;
+    AC_AUTOMATA_t* ac;
+    AC_ERROR_t ac_error;
+
+    // Matching state.
+    enum paraglob_error error;
+    uint64_t matches;
+    uint64_t fnmatches;
+    set_word* matching_words;
+    set_pattern* matching_patterns;
+    const char* needle;
+    uint64_t needle_len;
+};
+
+typedef struct _pg_meta_word pg_meta_word;
+typedef struct _pg_pattern pg_pattern;
 typedef struct _pg_word pg_word;
+
+static int _compare_uint64(const void* u1, const void* u2)
+{
+    return (uint64_t)u1 - (uint64_t)u2;
+}
 
 static int _compare_words(pg_word* w1, pg_word* w2)
 {
@@ -29,62 +86,13 @@ static int _compare_words(pg_word* w1, pg_word* w2)
     return w1->len - w2->len;
 }
 
-DECLARE_SET(word, pg_word*, uint64_t, _compare_words)
-
-struct _pg_pattern {
-    set_word* words;
-    void *cookie;
-    uint64_t len;
-    char data[];
-};
-
-typedef struct _pg_pattern pg_pattern;
-
-DECLARE_VECTOR(pattern, pg_pattern*, uint64_t);
-
-struct _pg_meta_word {
-    uint64_t len;
-    vec_pattern* patterns;
-    pg_word* data[];
-};
-
-typedef struct _pg_meta_word pg_meta_word;
-
-static void _print_meta_word(FILE* out, pg_meta_word* mw);
-
 static int _compare_meta_words(pg_meta_word* w1, pg_meta_word* w2)
 {
-    int min = (w1->len <= w2->len) ? w1->len : w2->len;
-    int n = memcmp(&w1->data, &w2->data, min * sizeof(pg_word*));
-
-    if ( n != 0 )
-        return n;
-    else
-        return w1->len - w2->len;
+    return w1 - w2; // Pointer comparision.
 }
 
-DECLARE_SET(meta_word, pg_meta_word*, uint64_t, _compare_meta_words)
-
-struct __paraglob {
-    enum paraglob_encoding encoding;
-    paraglob_match_callback* callback;
-    FILE* debug;
-
-    vec_pattern* patterns;
-    set_word* words;            // All words; this structure owns them.
-    set_meta_word* meta_words;  // All meta_words; this structure owns them.
-
-    enum paraglob_error error;
-    AC_AUTOMATA_t* ac_chars;
-    AC_AUTOMATA_t* ac_meta_words;
-    AC_ERROR_t ac_error;
-
-    uint64_t matches;
-    set_word* matching_words;
-    char* needle;
-    uint64_t needle_len;
-    int needle_free;
-};
+static void _print_meta_word(FILE* out, pg_meta_word* mw);
+static void _print_word(FILE* out, pg_word* mw);
 
 static set_word* _computeWords(paraglob_t pg, uint64_t len, const char* data)
 {
@@ -109,8 +117,9 @@ static set_word* _computeWords(paraglob_t pg, uint64_t len, const char* data)
         if ( s != t ) {
             // Extract word.
             uint64_t len = (t -s);
-            pg_word* word = malloc(sizeof(pg_word) + len);
+            pg_word* word = calloc(sizeof(pg_word), len);
             word->len = len;
+            word->meta_words = set_meta_word_create(0);
             memcpy(&word->data, s, t - s);
 
             pg_word* cur_word = set_word_get(pg->words, word);
@@ -143,14 +152,25 @@ static void _safe_print(FILE* out, uint64_t len, const char* data)
     }
 }
 
+static void _print_word(FILE* out, pg_word* w)
+{
+    _safe_print(out, w->len, w->data);
+}
+
 static void _print_meta_word(FILE* out, pg_meta_word* mw)
 {
-    int i;
-    for ( i = 0; i < mw->len; i++ ) {
-        fprintf(out, " |");
-        _safe_print(out, mw->data[i]->len, mw->data[i]->data);
-        fprintf(out, "|");
+    fprintf(out, "(");
+
+    int first = 1;
+    set_for_each(word, mw->words, w) {
+        if ( ! first )
+            fprintf(out, "|");
+
+        _print_word(out, w);
+        first = 0;
     }
+
+    fprintf(out, ")");
 }
 
 static void _verify_match(paraglob_t pg, pg_pattern* p)
@@ -171,6 +191,8 @@ static void _verify_match(paraglob_t pg, pg_pattern* p)
     data[p->len] = '\0';
     needle[pg->needle_len] = '\0';
 
+    ++pg->fnmatches;
+
     if ( fnmatch(data, needle, 0) == 0 ) {
         if ( pg->debug )
             fprintf(stderr, "==> Match found!\n");
@@ -182,7 +204,7 @@ static void _verify_match(paraglob_t pg, pg_pattern* p)
     }
 }
 
-static int _ac_chars_match_callback(AC_MATCH_t *match, void * cookie)
+static int _ac_match_callback(AC_MATCH_t *match, void * cookie)
 {
     paraglob_t pg = (paraglob_t) cookie;
 
@@ -190,12 +212,11 @@ static int _ac_chars_match_callback(AC_MATCH_t *match, void * cookie)
 
     for ( i = 0; i < match->match_num; i++ ) {
         pg_word* w = (pg_word*)match->patterns[i].rep.stringy;
-        AC_ALPHABET_t a = (AC_ALPHABET_t)w;
 
         if ( pg->debug ) {
             fprintf(pg->debug, "Word match: |");
             _safe_print(pg->debug, w->len, w->data);
-            fprintf(pg->debug, "| (%p)\n", a);
+            fprintf(pg->debug, "| (%p)\n", cookie);
         }
 
         set_word_insert(pg->matching_words, w);
@@ -210,7 +231,7 @@ int _ac_meta_words_match_callback(AC_MATCH_t *match, void * cookie)
 
     int i, j;
     for ( i = 0; i < match->match_num; i++ ) {
-        pg_meta_word* mw = match->patterns[i].rep.stringy;
+        pg_meta_word* mw = (pg_meta_word*) match->patterns[i].rep.stringy;
 
         if ( pg->debug ) {
             fprintf(pg->debug, "Meta word match: ");
@@ -227,11 +248,10 @@ int _ac_meta_words_match_callback(AC_MATCH_t *match, void * cookie)
 
 static int _ac_build(paraglob_t pg)
 {
-    pg->ac_chars = ac_automata_init(_ac_chars_match_callback);
+    pg->ac = ac_automata_init(_ac_match_callback);
 
     set_for_each(word, pg->words, w) {
-
-        AC_ALPHABET_t* data = malloc(w->len * sizeof(AC_ALPHABET_t));
+        AC_ALPHABET_t* data = calloc(w->len, sizeof(AC_ALPHABET_t));
         int i;
         for ( i = 0; i < w->len; i++ )
             data[i] = (AC_ALPHABET_t)(intptr_t)w->data[i];
@@ -239,68 +259,48 @@ static int _ac_build(paraglob_t pg)
         AC_PATTERN_t p;
         p.astring = data;
         p.length = w->len;
-        p.rep.stringy = w;
-        pg->ac_error = ac_automata_add(pg->ac_chars, &p);
+        p.rep.stringy = (char *)w;
+        pg->ac_error = ac_automata_add(pg->ac, &p);
 
         if ( pg->ac_error != ACERR_SUCCESS ) {
             pg->error = PARAGLOB_ERROR_AC;
             return 0;
         }
+
+        free(data);
     }
 
-    ac_automata_finalize(pg->ac_chars);
+    ac_automata_finalize(pg->ac);
 
     ///
 
-    vec_for_each(pattern, pg->patterns, pat) {
-
-        uint64_t mw_len = set_word_size(pat->words);
-        pg_meta_word* mw = malloc(sizeof(pg_meta_word) + mw_len * sizeof(pg_word*));
-        mw->len = mw_len;
-
-        pg_word** dst = &mw->data[0];
-
-        set_for_each(word, pat->words, w)
-            *dst++ = w;
+    vec_for_each(pattern, pg->patterns, p1) {
+        uint64_t mw_len = set_word_size(p1->words);
+        pg_meta_word* mw = calloc(sizeof(pg_meta_word) + mw_len * sizeof(pg_word*), 1);
+        mw->words = p1->words;
 
         pg_meta_word* cur_mw = set_meta_word_get(pg->meta_words, mw);
 
-        if ( cur_mw ) {
-            vec_pattern_append(cur_mw->patterns, pat);
-            free(mw);
-        }
-        else {
+        if ( ! cur_mw ) {
             mw->patterns = vec_pattern_create(0);
-            vec_pattern_append(mw->patterns, pat);
             set_meta_word_insert(pg->meta_words, mw);
+
+            set_for_each(word, p1->words, w)
+                set_meta_word_insert(w->meta_words, mw);
         }
+
+        else
+            free(mw);
     }
 
     ///
 
-    pg->ac_meta_words = ac_automata_init(_ac_meta_words_match_callback);
-
-    set_for_each(meta_word, pg->meta_words, mw) {
-
-        AC_ALPHABET_t* data = malloc(w->len * sizeof(AC_ALPHABET_t));
-        int i;
-        for ( i = 0; i < mw->len; i++ )
-            data[i] = (AC_ALPHABET_t)mw->data[i];
-
-        AC_PATTERN_t p;
-        p.astring = data;
-        p.length = mw->len;
-        p.rep.stringy = mw;
-
-        pg->ac_error = ac_automata_add(pg->ac_meta_words, &p);
-
-        if ( pg->ac_error != ACERR_SUCCESS ) {
-            pg->error = PARAGLOB_ERROR_AC;
-            return 0;
+    vec_for_each(pattern, pg->patterns, p2) {
+        set_for_each(meta_word, pg->meta_words, mw) {
+            if ( set_word_is_subset(p2->words, mw->words) )
+                vec_pattern_append(mw->patterns, p2);
         }
     }
-
-    ac_automata_finalize(pg->ac_meta_words);
 
     return 1;
 }
@@ -319,14 +319,14 @@ paraglob_t paraglob_create(enum paraglob_encoding encoding, paraglob_match_callb
     pg->meta_words = set_meta_word_create(0);
     pg->error = PARAGLOB_ERROR_NONE;
     pg->debug = 0;
-    pg->ac_chars = 0;
-    pg->ac_meta_words = 0;
+    pg->ac = 0;
     pg->ac_error = ACERR_SUCCESS;
     pg->matches = 0;
-    pg->matching_words = 0;
+    pg->fnmatches = 0;
+    pg->matching_words = set_word_create(0);
+    pg->matching_patterns = set_pattern_create(0);
     pg->needle = 0;
     pg->needle_len = 0;
-    pg->needle_free = 0;
 
     return pg;
 }
@@ -341,8 +341,9 @@ void paraglob_delete(paraglob_t pg)
         free(w);
     }
 
-    if ( pg->needle && pg->needle_free )
-        free(pg->needle);
+    set_for_each(meta_word, pg->meta_words, mw) {
+        free(mw);
+    }
 
     free(pg);
 }
@@ -379,79 +380,70 @@ int paraglob_compile(paraglob_t pg)
 
 uint64_t paraglob_match(paraglob_t pg, uint64_t len, const char* needle)
 {
-    if ( ! paraglob_match_begin(pg) )
-        return 0;
-
-    if ( ! paraglob_match_next(pg, len, needle) )
-        return 0;
-
-    return paraglob_match_end(pg);
-}
-
-int paraglob_match_begin(paraglob_t pg)
-{
-    if ( ! (pg->ac_chars && pg->ac_meta_words) ) {
+    if ( ! pg->ac ) {
         pg->error = PARAGLOB_ERROR_NOT_COMPILED;
         return 0;
     }
 
-    ac_automata_reset(pg->ac_chars);
-    ac_automata_reset(pg->ac_meta_words);
-
+    // Rest parse state.
+    pg->error = PARAGLOB_ERROR_NONE;
     pg->matches = 0;
-    pg->needle = 0;
-    pg->needle_len = 0;
-    pg->needle_free = 0;
+    pg->fnmatches = 0;
+    pg->needle = needle;
+    pg->needle_len = len;
 
-    if ( ! pg->matching_words )
-        pg->matching_words = set_word_create(0);
-    else
-        set_word_clear(pg->matching_words);
+    set_word_clear(pg->matching_words, 0);
+    ac_automata_reset(pg->ac);
 
-    return 1;
-}
-
-int paraglob_match_next(paraglob_t pg, uint64_t len, const char* needle)
-{
-    pg->needle = realloc(pg->needle, pg->needle_len + len);
-    memcpy(pg->needle + pg->needle_len, needle, len);
-    pg->needle_free = 1;
-    pg->needle_len += len;
+    // Send data to AC matcher.
 
     while ( len-- ) {
         intptr_t i = *needle++;
 
         AC_TEXT_t t;
         AC_ALPHABET_t n = (AC_ALPHABET_t)i;
-        t.astring = (AC_ALPHABET_t) &n;
+        t.astring = &n;
         t.length = 1;
 
-        if ( ac_automata_search (pg->ac_chars, &t, pg) < 0 ) {
+        if ( ac_automata_search (pg->ac, &t, pg) < 0 ) {
             pg->error = PARAGLOB_ERROR_NOT_COMPILED;
             return 0;
         }
     }
 
-    return 1;
-}
+    // Find the match candidates.
 
-uint64_t paraglob_match_end(paraglob_t pg)
-{
     int m = set_word_size(pg->matching_words);
-    pg_word* wmatches[m];
 
-    int i = 0;
-    set_for_each(word, pg->matching_words, w)
-        wmatches[i++] = w;
+    if ( pg->debug ) {
+        fprintf(pg->debug, "All matching words:");
 
-    AC_TEXT_t t;
-    t.astring = (AC_ALPHABET_t*) &wmatches;
-    t.length = m;
+        set_for_each(word, pg->matching_words, w) {
+            fprintf(pg->debug, " ");
+            _print_word(pg->debug, w);
+        }
 
-    if ( ac_automata_search (pg->ac_meta_words, &t, pg) < 0 ) {
-        pg->error = PARAGLOB_ERROR_NOT_COMPILED;
-        return 1;
+        fprintf(pg->debug, "\n");
     }
+
+    set_for_each(word, pg->matching_words, w) {
+        set_for_each(meta_word, w->meta_words, mw) {
+            if ( ! set_word_is_subset(pg->matching_words, mw->words) )
+                continue;
+            if ( pg->debug ) {
+                fprintf(pg->debug, "Meta word match: ");
+                _print_meta_word(pg->debug, mw);
+                fprintf(pg->debug, "\n");
+            }
+
+            vec_for_each(pattern, mw->patterns, p) {
+                set_pattern_insert(pg->matching_patterns, p);
+            }
+        }
+    }
+
+    set_for_each(pattern, pg->matching_patterns, p)
+        _verify_match(pg, p);
 
     return pg->matches;
 }
@@ -492,6 +484,11 @@ const char* paraglob_strerror(paraglob_t pg)
     }
 }
 
+void paraglob_stats(paraglob_t pg, uint64_t* fnmatches)
+{
+    *fnmatches = pg->fnmatches;
+}
+
 void paraglob_enable_debug(paraglob_t pg, FILE* debug)
 {
     pg->debug = debug;
@@ -502,10 +499,12 @@ void paraglob_dump_debug(paraglob_t pg)
     if ( ! pg->debug )
         return;
 
+    fprintf(stderr, "\n");
+    fprintf(stderr, "Patterns:\n");
+
     vec_for_each(pattern, pg->patterns, p) {
-        fprintf(pg->debug, "Pattern: |");
+        fprintf(stderr, "  ");
         _safe_print(pg->debug, p->len, p->data);
-        fprintf(pg->debug, "|");
 
         fprintf(pg->debug, " ->");
 
@@ -520,47 +519,39 @@ void paraglob_dump_debug(paraglob_t pg)
         fprintf(pg->debug, "\n");
     }
 
-    fprintf(pg->debug, "Global word set:");
+    fprintf(stderr, "\n");
+    fprintf(stderr, "Words:\n");
 
+    int i = 0;
     set_for_each(word, pg->words, w) {
-        fprintf(pg->debug, " |");
-        _safe_print(pg->debug, w->len, w->data);
-        fprintf(pg->debug, "|");
+        fprintf(stderr, "  ");
+        _print_word(pg->debug, w);
+        fprintf(stderr, "\n");
+
+        set_for_each(meta_word, w->meta_words, mw) {
+            fprintf(stderr, "    + ");
+            _print_meta_word(pg->debug, mw);
+            fprintf(stderr, "\n");
+        }
     }
 
-    fprintf(pg->debug, "\n");
-
-    fprintf(pg->debug, "Meta words:\n");
+    fprintf(stderr, "\n");
+    fprintf(stderr, "Meta words:\n");
 
     set_for_each(meta_word, pg->meta_words, mw) {
-        fprintf(pg->debug, "    ");
+        fprintf(stderr, "  ");
         _print_meta_word(pg->debug, mw);
-
-        fprintf(stderr, " ->");
-
-        vec_for_each(pattern, mw->patterns, p) {
-            fprintf(pg->debug, " |");
-            _safe_print(pg->debug, p->len, p->data);
-            fprintf(pg->debug, "|");
-        }
-
-        fprintf(pg->debug, "\n");
+        fprintf(stderr, "\n");
     }
 
-    if ( pg->ac_chars ) {
+    fprintf(stderr, "\n");
+
+    if ( pg->ac ) {
         fprintf(pg->debug, "Aho-Corasick for chars: compiled\n");
-        //ac_automata_display(pg->ac_chars, 'n');
+        //ac_automata_display(pg->ac, 'n');
     }
 
     else
         fprintf(pg->debug, "Aho-Corasick for chars: not compiled yet\n");
-
-    if ( pg->ac_meta_words ) {
-        fprintf(pg->debug, "Aho-Corasick for words: compiled\n");
-        //ac_automata_display(pg->ac_chars, 'n');
-    }
-
-    else
-        fprintf(pg->debug, "Aho-Corasick: not compiled yet\n");
 }
 
