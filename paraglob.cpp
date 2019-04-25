@@ -1,6 +1,6 @@
 #include "paraglob.h"
 
-Paraglob::Paraglob(std::vector<std::string> patterns): Paraglob() {
+Paraglob::Paraglob(const std::vector<std::string> &patterns): Paraglob() {
   for (std::string pattern : patterns) {
     this->add(pattern);
   }
@@ -24,7 +24,7 @@ void Paraglob::add(std::string pattern) {
       std::cout << "Failed to add: " << meta_word << std::endl;
     } else {
       if (status == AhoCorasickPlus::RETURNSTATUS_DUPLICATE_PATTERN) {
-        this->meta_to_node_map.at(meta_word).addPattern(pattern);
+        this->meta_to_node_map.at(meta_word).add_pattern(pattern);
       } else {
         this->meta_words.push_back(meta_word);
         this->meta_to_node_map.emplace(meta_word, ParaglobNode(meta_word, pattern));
@@ -46,26 +46,29 @@ std::vector<std::string> Paraglob::get(std::string text) {
     meta_matches.push_back(this->meta_words.at(aMatch.id));
   }
 
-  // Get patterns
-  std::set<std::string> patterns;
+  // Get the relevant patterns
+  std::vector<std::string> patterns;
   for (std::string meta_word : meta_matches) {
-    patterns.merge(this->meta_to_node_map.at(meta_word).patterns);
+    this->meta_to_node_map.at(meta_word).merge_into(patterns);
   }
-  for (std::string pattern : this->single_wildcards) {
-    patterns.insert(pattern);
-  }
+  patterns.insert(patterns.end(), single_wildcards.begin(), single_wildcards.end());
 
-  // Check patterns
-  std::vector<std::string> successes;
-  for (std::string pattern : patterns) {
-    if (fnmatch(pattern.c_str(), text.c_str(), 0) == 0) {
-      successes.push_back(pattern);
-    }
-  }
-  return successes;
+  // Remove non-matches
+  // Faster to remove in place rather than building new vector.
+  patterns.erase(std::remove_if(
+    patterns.begin(), patterns.end(),
+    [text](const std::string& pattern) {
+        return (fnmatch(pattern.c_str(), text.c_str(), 0) != 0); // No match
+    }), patterns.end());
+
+  // Remove duplicates
+  // Faster to remove duplicates after we've narrowed down to matching patterns.
+  std::sort(patterns.begin(), patterns.end());
+  patterns.erase(unique(patterns.begin(), patterns.end()), patterns.end());
+  return patterns;
 }
 
-std::vector<std::string> Paraglob::split_on_brackets(std::string in) {
+std::vector<std::string> Paraglob::split_on_brackets(const std::string &in) {
   std::vector<std::string> out;
   size_t pos;
   size_t prev = 0;
@@ -85,7 +88,7 @@ std::vector<std::string> Paraglob::split_on_brackets(std::string in) {
 }
 
 
-std::vector<std::string> Paraglob::get_meta_words(std::string pattern) {
+std::vector<std::string> Paraglob::get_meta_words(const std::string &pattern) {
   std::vector<std::string> meta_words;
   // Split the pattern by brackets
   for (std::string word : split_on_brackets(pattern)) {

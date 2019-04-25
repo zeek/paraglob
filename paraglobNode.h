@@ -5,21 +5,25 @@
 #ifndef PARAGLOBNODE_H
 #define PARAGLOBNODE_H
 
-#include <set>
+#include <vector>
 #include <string>
 
 class ParaglobNode {
+private:
+    std::vector<std::string> patterns;
+    std::string meta_word;
 public:
-  std::set<std::string> patterns;
-  std::string meta_word;
-  ParaglobNode(std::string meta_word, std::string init_pattern);
+  ParaglobNode(const std::string meta_word, const std::string init_pattern);
+  std::string get_meta_word() const;
   bool operator==(const ParaglobNode &other) const;
-  void addPattern(std::string pattern);
+  void add_pattern(const std::string pattern);
+  /* Merges this nodes patterns into the input vector. */
+  void merge_into(std::vector<std::string> &s);
 };
 
-/**
- * Hash function for ParaglobNode. Makes ParaglobNode compatable with
- * std::unordered_map. Note that this is being added to namespace std.
+/*
+Hash function for ParaglobNode. Makes ParaglobNode compatable with
+std::unordered_map. Note that this is being added to namespace std.
  */
 namespace std {
   template <>
@@ -27,7 +31,7 @@ namespace std {
   {
     std::size_t operator()(const ParaglobNode& p) const
     {
-      return std::hash<std::string>()(p.meta_word);
+      return std::hash<std::string>()(p.get_meta_word());
     }
   };
 }
