@@ -19,8 +19,7 @@
     along with multifast.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "ahocorasick/ahocorasick.h"
-
+#include "ahocorasick.h"
 #include "AhoCorasickPlus.h"
 
 AhoCorasickPlus::AhoCorasickPlus ()
@@ -79,47 +78,33 @@ AhoCorasickPlus::EnumReturnStatus AhoCorasickPlus::addPattern
     return addPattern (tmpString, id);
 }
 
-void AhoCorasickPlus::finalize ()
-{
+void AhoCorasickPlus::finalize () {
     ac_trie_finalize (m_automata);
 }
 
-void AhoCorasickPlus::search (std::string& text, bool keep)
+void AhoCorasickPlus::search (const std::string &text, bool keep)
 {
     m_acText->astring = text.c_str();
     m_acText->length = text.size();
     ac_trie_settext (m_automata, m_acText, (int)keep);
 }
 
-bool AhoCorasickPlus::findNext (Match& match)
+std::vector<int> AhoCorasickPlus::findAll (std::string& text, bool keep)
 {
-    if (m_matchQueue.size() > 0)
-    {
-        match = m_matchQueue.front();
-        m_matchQueue.pop();
-        return true;
-    }
+  this->search(text, keep);
 
-    AC_MATCH_t matchp;
+  std::vector<int> IDs;
+  AC_MATCH_t matchp;
+  unsigned int j;
 
-    if ((matchp = ac_trie_findnext (m_automata)).size)
-    {
-        Match singleMatch;
-        singleMatch.position = matchp.position;
+  while ((matchp = ac_trie_findnext (m_automata)).size)
+  {
+      for (j = 0; j < matchp.size; j++)
+      {
+          // Add the id to our vector
+          IDs.push_back(matchp.patterns[j].id.u.number);
+      }
+  }
 
-        for (unsigned int j = 0; j < matchp.size; j++)
-        {
-            singleMatch.id = matchp.patterns[j].id.u.number;
-            m_matchQueue.push(singleMatch);
-        }
-    }
-
-    if (m_matchQueue.size() > 0)
-    {
-        match = m_matchQueue.front();
-        m_matchQueue.pop();
-        return true;
-    }
-
-    return false;
+  return IDs;
 }

@@ -29,7 +29,7 @@ those meta-words and runs `fnmatch` on the query and those patterns. It finally
 returns a vector of all the patterns that match.
 
 ## How to use it
-Running `make` in its directory will compile `paraglob.out`. This is a small
+Running `make` in the tools directory will compile `paraglob.tools`. This is a small
 benchmarking script that takes three parameters: the number of patterns to
 generate, the number of queries to perform, and the percentage generated of
 patterns that will match.

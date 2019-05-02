@@ -34,7 +34,10 @@ double benchmark(char* a, char* b, char* c, bool silent) {
   long num_patterns = atol(a);
   long num_queries = atol(b);
   long match_prob = atol(c);
+  return benchmark_n(num_patterns, num_queries, match_prob, silent);
+}
 
+double benchmark_n(long num_patterns, long num_queries, long match_prob, bool silent) {
   if (!silent) {
     std::cout << "creating workload:\n";
     std::cout << "\t# patterns: " << num_patterns << "\n";
@@ -102,7 +105,7 @@ double benchmark(char* a, char* b, char* c, bool silent) {
     std::cout << "creating paraglob \n";
   }
   auto build_start = std::chrono::high_resolution_clock::now();
-  Paraglob myGlob;
+  paraglob::Paraglob myGlob;
   for (std::string p : patterns) {
     myGlob.add(p);
   }
@@ -129,4 +132,24 @@ double benchmark(char* a, char* b, char* c, bool silent) {
   }
 
   return elapsed.count() + build_time.count();
+}
+
+void makeGraphData() {
+  /*
+  prints data to the console for generation of 3d plot
+  of paraglob performance.
+  x axis is number of patterns
+  y axis is number of queries
+  z axis is the time taken to build and run the queries
+  */
+  for(long patterns = 500; patterns <= 10000; patterns += 500) {
+    std::cout << "{ ";
+    for(long queries = 1000; queries <= 20000; queries += 1000) {
+      std::cout << benchmark_n(patterns, queries, 10, true);
+      if (queries != 20000) {
+        std::cout << ", ";
+      }
+    }
+    std::cout << "},\n";
+  }
 }

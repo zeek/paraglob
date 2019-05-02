@@ -1,2 +1,0 @@
-# @TEST-EXEC:	paraglob.out -b 10000 20000 10 2 > out
-# @TEST-EXEC:	btest-diff out

@@ -1,16 +1,17 @@
-cmake_minimum_required (VERSION 3.14)
-
 project(paraglob)
+cmake_minimum_required(VERSION 2.8.12)
 
 set(CMAKE_CXX_FLAGS "-Wall -O2")
-set(CMAKE_CXX_STANDARD 17)
+set(SOURCES src/paraglob.cpp ahocorasick/AhoCorasickPlus.cpp )
+if (NOT INSTALL_LIB_DIR)
+  set(INSTALL_LIB_DIR ${CMAKE_INSTALL_PREFIX}/lib)
+endif ()
 
 add_subdirectory(ahocorasick)
 
-set(SOURCES driver.cpp benchmark.cpp paraglob.cpp AhoCorasickPlus.cpp paraglobNode.cpp)
-add_executable(paraglob.out ${SOURCES})
+add_library(paraglob STATIC ${SOURCES})
+set_target_properties(paraglob PROPERTIES OUTPUT_NAME paraglob)
+target_link_libraries(paraglob ahocorasick)
 
-target_link_libraries(paraglob.out ahocorasick)
-
-install(TARGETS paraglob.out DESTINATION bin)
-install(FILES ahocorasick.h DESTINATION include)
+install(TARGETS paraglob DESTINATION lib)
+install(FILES src/paraglob.h DESTINATION include)

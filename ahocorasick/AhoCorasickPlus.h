@@ -25,6 +25,7 @@
 
 #include <string>
 #include <queue>
+#include <vector>
 
 // Forward declarations
 struct ac_trie;
@@ -34,7 +35,7 @@ struct ac_text;
 class AhoCorasickPlus
 {
 public:
-    
+
     enum EnumReturnStatus
     {
         RETURNSTATUS_SUCCESS = 0,       // No error occurred
@@ -44,33 +45,30 @@ public:
         RETURNSTATUS_AUTOMATA_CLOSED,   // Automata is closed
         RETURNSTATUS_FAILED,            // General unknown failure
     };
-    
+
     typedef unsigned int PatternId;
-    
+
     struct Match
     {
         unsigned int    position;
         PatternId       id;
     };
-    
+
 public:
-    
+
     AhoCorasickPlus();
     ~AhoCorasickPlus();
-    
+
     EnumReturnStatus addPattern (const std::string &pattern, PatternId id);
     EnumReturnStatus addPattern (const char pattern[], PatternId id);
     void             finalize   ();
-    
-    void search   (std::string& text, bool keep);
-    bool findNext (Match& match);
-    
+
+    void search   (const std::string &text, bool keep);
+    std::vector<int> findAll (std::string& text, bool keep);
+
 private:
     struct ac_trie      *m_automata;
     struct ac_text      *m_acText;
-    std::queue<Match>   m_matchQueue;   // if multiple matches occur in a single
-                                        // position we save them here and return
-                                        // one by one for simplicity
 };
 
 #endif /* AHOCORASICKPPW_H_ */

@@ -1,4 +1,4 @@
-#include "paraglob.h"
+#include "../src/paraglob.h"
 #include "benchmark.h"
 #include <iostream>
 #include <cstring>
@@ -26,6 +26,7 @@ arguments it will ungracefully break.
 
 int main(int argc, char* argv[]) {
 	double max_time = 0;
+
 	if (strcmp(argv[1], "-b") == 0) {
 		if (argc == 6) {
 			// there is a time argument
@@ -50,10 +51,11 @@ int main(int argc, char* argv[]) {
 		for (int i = 3 ; i < argc ; i++) {
 			v.push_back(std::string(argv[i]));
 		}
-		Paraglob p(v);
+		paraglob::Paraglob p(v);
 		std::cout << p.get(std::string(argv[2])).size() << "\n";
 	}
 	else {
 			std::cout << "Unrecognized first param\n";
 	}
+	// makeGraphData();
 }
