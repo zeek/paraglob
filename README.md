@@ -28,21 +28,20 @@ query using `multifast-ac`. Then, it builds a set of all patterns associated wit
 those meta-words and runs `fnmatch` on the query and those patterns. It finally
 returns a vector of all the patterns that match.
 
+## Installation
+```
+# ./configure && make && make test && make install
+```
+
 ## How to use it
-Running `make` in the tools directory will compile `paraglob.tools`. This is a small
+`paraglob-test` is a small
 benchmarking script that takes three parameters: the number of patterns to
 generate, the number of queries to perform, and the percentage generated of
 patterns that will match.
 
-As an example, running `paraglob.out 10000 50 50` will add 10,000 patterns,
+As an example, running `paraglob-test 10000 50 50` will add 10,000 patterns,
 perform 50 queries on them (of which 50% should match), and then return the
 results.
-
-## Installation
-
-``
-# ./configure && make && make test && make install
-``
 
 ## Notes
 Paraglob can make queries very quickly, but does not build instantly. It takes
