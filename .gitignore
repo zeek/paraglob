@@ -1,0 +1,7 @@
+# Ignore build output
+*.o
+*.a
+*.out
+Makefile
+.cmake
+build

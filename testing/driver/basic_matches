@@ -1,0 +1,2 @@
+# @TEST-EXEC:	paraglob-test -n dog "*" d?g *og d? d[!wl]g > out
+# @TEST-EXEC:	btest-diff out
