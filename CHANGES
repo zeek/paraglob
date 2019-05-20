@@ -1,4 +1,12 @@
 
+0.1-4 | 2019-05-20 11:19:53 -0700
+
+  * Build from the current source directory. (Zeke Medley)
+
+  * Update update-changes config. (Robin Sommer, Corelight)
+
+  * Fixing README. (Robin Sommer, Corelight)
+
 0.1 | 2019-05-13 23:36:45 +0000
 
   * Port to C++ & update data structures for better performance. (Zeke
