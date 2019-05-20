@@ -43,6 +43,22 @@ As an example, running `paraglob-test 10000 50 50` will add 10,000 patterns,
 perform 50 queries on them (of which 50% should match), and then return the
 results.
 
+## Inside Zeek
+Paraglob is integrated with Zeek & provides a simple api inside of its scripting
+language. Internally, paraglob an `OpaqueType` and its syntax closely follows other similar constructs inside Zeek. A paraglob can only be instantiated once from a vector of patterns and then only supports get operations which return a vector of all patterns matching an input string. The syntax is as follows:
+
+```
+  local v = vector("*", "d?g", "*og", "d?", "d[!wl]g");
+
+  local p = paraglob_init(v);
+
+  print paraglob_get(p1, "dog");  
+```
+out:
+```
+[*, *og, d?g, d[!wl]g]
+```
+
 ## Notes
 Paraglob can make queries very quickly, but does not build instantly. It takes
 about 1.5 seconds to build for 10,000 items, 3 seconds for 20,000, and so on.
