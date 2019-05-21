@@ -4,6 +4,9 @@
 #define BENCHMARK_H
 
 #include <iostream>
+#include <cstring>
+#include <chrono>
+
 #include <paraglob.h>
 
 /* A set of benchmark functions exercising paraglob with different workloads. */

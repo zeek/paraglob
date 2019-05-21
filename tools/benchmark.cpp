@@ -1,9 +1,5 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include <iostream>
-#include <cstring>
-#include <chrono>
-
 #include "benchmark.h"
 
 static const char* benchmark_pattern_words[] = {

@@ -39,6 +39,13 @@ public:
                  });
   }
 
+  // Merges this nodes patterns into the input vector
+  // Note: this could be done more efficently with a move iterator if we wanted
+  // this to be destructive.
+  void merge_patterns(std::vector<std::string>& target) {
+    target.insert(target.begin(), this->patterns.begin(), this->patterns.end());
+  }
+
 private:
     std::string meta_word;
     std::vector<std::string> patterns;

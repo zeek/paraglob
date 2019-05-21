@@ -6,9 +6,11 @@
 #include <ahocorasick/AhoCorasickPlus.h>
 
 #include "paraglobNode.h"
+#include "string_vector_serializer.h"
 
 #include <algorithm> // sort
 #include <string>
+#include <sstream> // str() function
 #include <unordered_map>
 #include <vector>
 
@@ -30,14 +32,22 @@ private:
 public:
   /* Create an empty paraglob to fill with add() and finalize with compile() */
   Paraglob() = default;
-  /* Fully unitialize a paraglob from a (large) vector of patterns, including compilation */
+  /* Initialize a paraglob from a (large) vector of patterns and compile */
   Paraglob(const std::vector<std::string>& patterns);
+  /* Initialize and compile a paraglob from a serialized one */
+  Paraglob(std::string in);
   /* Add a pattern to the paraglob & return true on success */
   bool add(const std::string& pattern);
   /* Compile the paraglob */
   void compile();
   /* Get a vector of the patterns that match the input string */
   std::vector<std::string> get(const std::string& text);
+  /* Get a raw byte representation of the paraglob */
+  std::string serialize() const;
+  /* Get readable contents of the paraglob for debugging */
+  std::string str() const;
+  /* Two paraglobs are equal if they contain the same patterns */
+  bool operator==(const Paraglob &other);
 };
 
 } // namespace paraglob
