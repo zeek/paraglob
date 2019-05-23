@@ -15,8 +15,7 @@ namespace paraglob {
 class ParaglobNode {
 public:
   ParaglobNode(std::string meta_word, std::string init_pattern)
-    : meta_word(std::move(meta_word)), patterns({ std::move(init_pattern) }) {
-  }
+    : meta_word(std::move(meta_word)), patterns({ std::move(init_pattern) }) { }
 
   std::string get_meta_word() const {
     return this->meta_word;

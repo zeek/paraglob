@@ -9,7 +9,7 @@ paraglob::Paraglob::Paraglob(const std::vector<std::string>& patterns) {
   this->compile();
 }
 
-paraglob::Paraglob::Paraglob(std::unique_ptr<std::vector<char>> serialized)
+paraglob::Paraglob::Paraglob(std::unique_ptr<std::vector<uint8_t>> serialized)
   : Paraglob(paraglob::ParaglobSerializer::unserialize(serialized)) {}
 
 bool paraglob::Paraglob::add(const std::string& pattern) {
@@ -114,7 +114,7 @@ std::vector<std::string> paraglob::Paraglob::get_meta_words(const std::string &p
 // itself in memory contiguously. Without a pressing use case for this
 // functionality, right now we're choosing not to do this. Instead, paraglob
 // serializes its vector of patterns, and rebuilds itself when unserialized.
-std::unique_ptr<std::vector<char>> paraglob::Paraglob::serialize() const {
+std::unique_ptr<std::vector<uint8_t>> paraglob::Paraglob::serialize() const {
   std::vector<std::string> patterns;
   // Merge in all of the nodes patterns
   for (auto it : this->meta_to_node_map) {

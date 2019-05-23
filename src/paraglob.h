@@ -13,7 +13,7 @@
 #include <sstream> // str() function
 #include <unordered_map>
 #include <vector>
-#include <memory>
+#include <memory> // std::unique_ptr
 
 namespace paraglob {
 
@@ -36,7 +36,7 @@ namespace paraglob {
     /* Initialize a paraglob from a (large) vector of patterns and compile */
     Paraglob(const std::vector<std::string>& patterns);
     /* Initialize and compile a paraglob from a serialized one */
-    Paraglob(std::unique_ptr<std::vector<char>> serialized);
+    Paraglob(std::unique_ptr<std::vector<uint8_t>> serialized);
     /* Add a pattern to the paraglob & return true on success */
     bool add(const std::string& pattern);
     /* Compile the paraglob */
@@ -44,7 +44,7 @@ namespace paraglob {
     /* Get a vector of the patterns that match the input string */
     std::vector<std::string> get(const std::string& text);
     /* Get a raw byte representation of the paraglob */
-    std::unique_ptr<std::vector<char>> serialize() const;
+    std::unique_ptr<std::vector<uint8_t>> serialize() const;
     /* Get readable contents of the paraglob for debugging */
     std::string str() const;
     /* Two paraglobs are equal if they contain the same patterns */

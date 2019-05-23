@@ -13,13 +13,19 @@ namespace paraglob {
 
   class ParaglobSerializer {
   public:
-    // ret -> [<n_strings><len_1><str_1>, <len_2><str_2>, ... <len_n><str_n>]
+    /* Returns serialized version of vector in form:
+       [<n_strings><len_1><str_1>, <len_2><str_2>, ... <len_n><str_n>] */
     // TODO: When Zeek supports C++17 char should be replaced by std::byte.
-    static std::unique_ptr<std::vector<char>> serialize(const std::vector<std::string>& v);
-    static std::vector<std::string> unserialize (const std::unique_ptr<std::vector<char>>& vsp);
+    static std::unique_ptr<std::vector<uint8_t>> serialize
+      (const std::vector<std::string>  &v);
+    /* Loads a serialized vector and returns it. */
+    static std::vector<std::string> unserialize
+      (const std::unique_ptr<std::vector<uint8_t>> &vsp);
   private:
-    static void add_int(int a, std::vector<char> &target);
-    static int get_int_and_move(std::vector<char>::iterator &start);
+    /* Divides up and adds a large integer to the input vector. */
+    static void add_int (uint64_t a, std::vector<uint8_t> &target);
+    /* Gets the large integer beginning at the iterator and moves it forward. */
+    static uint64_t get_int_and_move (std::vector<uint8_t>::iterator &start);
   };
 
 } // namespace paraglob
