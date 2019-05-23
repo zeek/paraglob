@@ -41,9 +41,6 @@ int main(int argc, char* argv[]) {
 		std::cerr << "       " << argv[0] << " -s <patterns>\n";
 		std::cerr << "       " <<
 			"Prints a a paraglob with **patterns** serialization\n";
-		std::cerr << "       " << argv[0] << " -us <patterns>\n";
-		std::cerr << "       " <<
-			"Tests serializing and unserializing and prints the results.\n";
 		exit(1);
 	}
 
@@ -74,19 +71,16 @@ int main(int argc, char* argv[]) {
 		std::cout << p.get(std::string(argv[2])).size() << "\n";
 	} else if (strcmp(argv[1], "-s") == 0) {
 		std::vector<std::string> v;
-		for (int i = 2 ; i < argc ; i++) {
+		for (int i = 3 ; i < argc ; i++) {
 			v.push_back(std::string(argv[i]));
 		}
 		paraglob::Paraglob p(v);
-		std::cout << p.serialize() << std::endl;
-	} else if (strcmp(argv[1], "-us") == 0) {
-		std::vector<std::string> v;
-		for (int i = 2 ; i < argc ; i++) {
-			v.push_back(std::string(argv[i]));
+		paraglob::Paraglob sp(p.serialize());
+		if (p == sp) {
+			std::cout << "passed" << std::endl;
+		} else {
+			std::cout << "failed" << std::endl;
 		}
-		paraglob::Paraglob regular(v);
-		paraglob::Paraglob s(paraglob::serialize_string_vec(v));
-		std::cout << (regular == s) << std::endl;
 	}
 	else {
 		std::cout << "Unrecognized first param\n";

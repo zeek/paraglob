@@ -9,8 +9,8 @@ paraglob::Paraglob::Paraglob(const std::vector<std::string>& patterns) {
   this->compile();
 }
 
-paraglob::Paraglob::Paraglob(std::string in)
-  : Paraglob(paraglob::unserialize_string_vec(in)) {}
+paraglob::Paraglob::Paraglob(std::unique_ptr<std::vector<char>> serialized)
+  : Paraglob(paraglob::ParaglobSerializer::unserialize(serialized)) {}
 
 bool paraglob::Paraglob::add(const std::string& pattern) {
   AhoCorasickPlus::EnumReturnStatus status;
@@ -114,7 +114,7 @@ std::vector<std::string> paraglob::Paraglob::get_meta_words(const std::string &p
 // itself in memory contiguously. Without a pressing use case for this
 // functionality, right now we're choosing not to do this. Instead, paraglob
 // serializes its vector of patterns, and rebuilds itself when unserialized.
-std::string paraglob::Paraglob::serialize() const {
+std::unique_ptr<std::vector<char>> paraglob::Paraglob::serialize() const {
   std::vector<std::string> patterns;
   // Merge in all of the nodes patterns
   for (auto it : this->meta_to_node_map) {
@@ -127,7 +127,7 @@ std::string paraglob::Paraglob::serialize() const {
   std::sort(patterns.begin(), patterns.end());
   patterns.erase(unique(patterns.begin(), patterns.end()), patterns.end());
 
-  return paraglob::serialize_string_vec(patterns);
+  return paraglob::ParaglobSerializer::serialize(patterns);
 }
 
 std::string paraglob::Paraglob::str() const {
