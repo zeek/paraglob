@@ -1,4 +1,8 @@
 
+0.1-9 | 2019-05-29 18:03:48 +0000
+
+  * Make paraglob serializable. (Zeke Medley, Corelight)
+
 0.1-4 | 2019-05-20 11:19:53 -0700
 
   * Build from the current source directory. (Zeke Medley)

@@ -1,13 +1,16 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include "paraglob.h"
+#include <paraglob.h>
 
-paraglob::Paraglob::Paraglob(const std::vector<std::string>& patterns): Paraglob() {
+paraglob::Paraglob::Paraglob(const std::vector<std::string>& patterns) {
   for (const std::string& pattern : patterns) {
     this->add(pattern);
   }
   this->compile();
 }
+
+paraglob::Paraglob::Paraglob(std::unique_ptr<std::vector<uint8_t>> serialized)
+  : Paraglob(paraglob::ParaglobSerializer::unserialize(std::move(serialized))) {}
 
 bool paraglob::Paraglob::add(const std::string& pattern) {
   AhoCorasickPlus::EnumReturnStatus status;
@@ -18,7 +21,11 @@ bool paraglob::Paraglob::add(const std::string& pattern) {
 
     if (status == AhoCorasickPlus::RETURNSTATUS_SUCCESS) {
       this->meta_words.push_back(meta_word);
-      this->meta_to_node_map.emplace(meta_word, paraglob::ParaglobNode(meta_word, pattern));
+      // Build the new paraglobNode in place.
+      this->meta_to_node_map.emplace(
+        std::piecewise_construct, std::forward_as_tuple(meta_word),
+        std::forward_as_tuple(meta_word, pattern)
+      );
     } else if (status == AhoCorasickPlus::RETURNSTATUS_DUPLICATE_PATTERN) {
       this->meta_to_node_map.at(meta_word).add_pattern(pattern);
     } else { // Failed to add
@@ -94,4 +101,55 @@ std::vector<std::string> paraglob::Paraglob::get_meta_words(const std::string &p
     this->single_wildcards.push_back(pattern);
   }
   return meta_words;
+}
+
+// Returns a string representation of the paraglob that it can rebuild
+// itself from. A paraglobs state is completely defined by the vector of patterns
+// that it contains.
+//
+// NOTE: Ideally, we'd like to serialize a paraglob in such a way that it can be
+// unserialized without having to compile itself, but this proves to be very
+// non-trivial. While its surely possible, the multifast data structure
+// maintains a complex system of nodes, pointers to nodes, and doesn't store
+// itself in memory contiguously. Without a pressing use case for this
+// functionality, right now we're choosing not to do this. Instead, paraglob
+// serializes its vector of patterns, and rebuilds itself when unserialized.
+std::unique_ptr<std::vector<uint8_t>> paraglob::Paraglob::serialize() const {
+  std::vector<std::string> patterns;
+  // Merge in all of the nodes patterns
+  for (auto it : this->meta_to_node_map) {
+    it.second.merge_patterns(patterns);
+  }
+  if (this->single_wildcards.size() > 0)
+    patterns.insert(patterns.end(), this->single_wildcards.begin(), this->single_wildcards.end());
+
+  // Remove the duplicate patterns. Duplicates don't effect the state.
+  std::sort(patterns.begin(), patterns.end());
+  patterns.erase(unique(patterns.begin(), patterns.end()), patterns.end());
+
+  return paraglob::ParaglobSerializer::serialize(patterns);
+}
+
+std::string paraglob::Paraglob::str() const {
+  const void * address = static_cast<const void*>(this);
+  std::stringstream ss;
+  ss << address;
+  std::string name = ss.str();
+
+  std::string out ("paraglob @ " + name + "\n" + "meta words: [ ");
+  for (const std::string& meta_word : this->meta_words) {
+    out += meta_word + " ";
+  }
+  out += "]\n";
+
+  out += "patterns: [ ";
+  for (auto it : this->meta_to_node_map) {
+    out += it.second.get_meta_word() + " ";
+  }
+
+  return (out + "]");
+}
+
+bool paraglob::Paraglob::operator==(const Paraglob &other) {
+  return (this->meta_to_node_map == other.meta_to_node_map);
 }

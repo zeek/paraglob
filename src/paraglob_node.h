@@ -15,8 +15,7 @@ namespace paraglob {
 class ParaglobNode {
 public:
   ParaglobNode(std::string meta_word, std::string init_pattern)
-    : meta_word(std::move(meta_word)), patterns({ std::move(init_pattern) }) {
-  }
+    : meta_word(std::move(meta_word)), patterns({ std::move(init_pattern) }) { }
 
   std::string get_meta_word() const {
     return this->meta_word;
@@ -37,6 +36,13 @@ public:
                  [text](const std::string& candidate) {
                    return (fnmatch(candidate.c_str(), text.c_str(), 0) == 0);
                  });
+  }
+
+  // Merges this nodes patterns into the input vector
+  // Note: this could be done more efficently with a move iterator if we wanted
+  // this to be destructive.
+  void merge_patterns(std::vector<std::string>& target) {
+    target.insert(target.begin(), this->patterns.begin(), this->patterns.end());
   }
 
 private:
