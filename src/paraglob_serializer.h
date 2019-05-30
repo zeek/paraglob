@@ -17,10 +17,10 @@ namespace paraglob {
        [<n_strings><len_1><str_1>, <len_2><str_2>, ... <len_n><str_n>] */
     // TODO: When Zeek supports C++17 char should be replaced by std::byte.
     static std::unique_ptr<std::vector<uint8_t>> serialize
-      (const std::vector<std::string>  &v);
+      (const std::vector<std::string>  &v, bool* good_standing);
     /* Loads a serialized vector and returns it. */
     static std::vector<std::string> unserialize
-      (const std::unique_ptr<std::vector<uint8_t>> &vsp);
+      (const std::unique_ptr<std::vector<uint8_t>> &vsp, bool* good_standing);
   private:
     /* Divides up and adds a large integer to the input vector. */
     static void add_int (uint64_t a, std::vector<uint8_t> &target);

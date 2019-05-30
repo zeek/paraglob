@@ -1,18 +1,33 @@
 // See the file "COPYING" in the main distribution directory for copyright.
+/*
+TODO:
+this current method doesn't work too well especially with constructor delegation
+*/
 
 #include <paraglob.h>
 
-paraglob::Paraglob::Paraglob(const std::vector<std::string>& patterns) {
+paraglob::Paraglob::Paraglob(const std::vector<std::string>& patterns)
+: Paraglob() {
   for (const std::string& pattern : patterns) {
     this->add(pattern);
   }
   this->compile();
 }
 
+// Can't chain constructors because ParaglobSerializer must be able to set the
+// value of good_standing. The above constructor must set it to true.
 paraglob::Paraglob::Paraglob(std::unique_ptr<std::vector<uint8_t>> serialized)
-  : Paraglob(paraglob::ParaglobSerializer::unserialize(std::move(serialized))) {}
+: Paraglob() {
+  std::vector<std::string> unserialized =
+    paraglob::ParaglobSerializer::unserialize(std::move(serialized), &(this->good_standing));
 
-bool paraglob::Paraglob::add(const std::string& pattern) {
+  for (const std::string& pattern : unserialized) {
+    this->add(pattern);
+  }
+  this->compile();
+}
+
+void paraglob::Paraglob::add(const std::string& pattern) {
   AhoCorasickPlus::EnumReturnStatus status;
 
   for (const std::string& meta_word : this->get_meta_words(pattern)) {
@@ -29,11 +44,9 @@ bool paraglob::Paraglob::add(const std::string& pattern) {
     } else if (status == AhoCorasickPlus::RETURNSTATUS_DUPLICATE_PATTERN) {
       this->meta_to_node_map.at(meta_word).add_pattern(pattern);
     } else { // Failed to add
-      return false;
+      this->good_standing = false;
     }
   }
-
-  return true;
 }
 
 void paraglob::Paraglob::compile() {
@@ -58,8 +71,7 @@ std::vector<std::string> paraglob::Paraglob::get(const std::string& text) {
 
 std::vector<std::string> paraglob::Paraglob::split_on_brackets(const std::string &in) {
   std::vector<std::string> out;
-  size_t pos;
-  size_t prev = 0;
+  size_t prev = 0, pos;
 
   while ((pos = in.find_first_of('[', prev)) != std::string::npos) {
     size_t end_bracket = in.find_first_of(']', pos);
@@ -73,7 +85,7 @@ std::vector<std::string> paraglob::Paraglob::split_on_brackets(const std::string
 
   // There are no more opening / closing brackets
   // Append the rest of the string
-  out.push_back(in.substr(prev, in.length()-prev));
+  out.push_back(in.substr(prev, std::string::npos));
   return out;
 }
 
@@ -114,7 +126,7 @@ std::vector<std::string> paraglob::Paraglob::get_meta_words(const std::string &p
 // itself in memory contiguously. Without a pressing use case for this
 // functionality, right now we're choosing not to do this. Instead, paraglob
 // serializes its vector of patterns, and rebuilds itself when unserialized.
-std::unique_ptr<std::vector<uint8_t>> paraglob::Paraglob::serialize() const {
+std::unique_ptr<std::vector<uint8_t>> paraglob::Paraglob::serialize() {
   std::vector<std::string> patterns;
   // Merge in all of the nodes patterns
   for (auto it : this->meta_to_node_map) {
@@ -127,7 +139,11 @@ std::unique_ptr<std::vector<uint8_t>> paraglob::Paraglob::serialize() const {
   std::sort(patterns.begin(), patterns.end());
   patterns.erase(unique(patterns.begin(), patterns.end()), patterns.end());
 
-  return paraglob::ParaglobSerializer::serialize(patterns);
+  return paraglob::ParaglobSerializer::serialize(patterns, &(this->good_standing));
+}
+
+bool paraglob::Paraglob::in_good_standing() const {
+  return this->good_standing && this->my_ac.in_good_standing();
 }
 
 std::string paraglob::Paraglob::str() const {
@@ -150,6 +166,6 @@ std::string paraglob::Paraglob::str() const {
   return (out + "]");
 }
 
-bool paraglob::Paraglob::operator==(const Paraglob &other) {
+bool paraglob::Paraglob::operator==(const Paraglob &other) const {
   return (this->meta_to_node_map == other.meta_to_node_map);
 }

@@ -24,6 +24,8 @@ namespace paraglob {
     std::vector<std::string> meta_words;
     /* Patterns with no meta words, ex: '*' & '?' */
     std::vector<std::string> single_wildcards;
+    /* Is the paraglob well made and problem free? */
+    bool good_standing;
 
     /* Get a vector of the meta words in the pattern. */
     std::vector<std::string> get_meta_words(const std::string& pattern);
@@ -31,24 +33,26 @@ namespace paraglob {
     std::vector<std::string> split_on_brackets(const std::string& in);
 
   public:
-    /* Create an empty paraglob to fill with add and finalize with compile */
-    Paraglob() = default;
+    /* Create an empty paraglob to fill and compile later */
+    Paraglob() : good_standing (true) { }
     /* Initialize a paraglob from a (large) vector of patterns and compile */
     Paraglob(const std::vector<std::string>& patterns);
     /* Initialize and compile a paraglob from a serialized one */
     Paraglob(std::unique_ptr<std::vector<uint8_t>> serialized);
-    /* Add a pattern to the paraglob & return true on success */
-    bool add(const std::string& pattern);
-    /* Compile the paraglob */
+    /* Add a pattern to the paraglob. Mutate good_standing on failure. */
+    void add(const std::string& pattern);
+    /* Compile the paraglob. */
     void compile();
     /* Get a vector of the patterns that match the input string */
     std::vector<std::string> get(const std::string& text);
     /* Get a raw byte representation of the paraglob */
-    std::unique_ptr<std::vector<uint8_t>> serialize() const;
+    std::unique_ptr<std::vector<uint8_t>> serialize();
+    /* Returns true if the paraglob is well constructed and compiled. */
+    bool in_good_standing() const;
     /* Get readable contents of the paraglob for debugging */
     std::string str() const;
     /* Two paraglobs are equal if they contain the same patterns */
-    bool operator==(const Paraglob &other);
+    bool operator==(const Paraglob &other) const;
   };
 
 } // namespace paraglob

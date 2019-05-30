@@ -43,7 +43,10 @@ double benchmark_n(long num_patterns, long num_queries, long match_prob, bool si
   }
 
   // Create the patterns.
-  std::string patterns[num_patterns];
+  // Use a vector, otherwise will run into limit on call stack
+  // for large number of queries
+  std::vector<std::string> patterns;
+  patterns.reserve(num_patterns);
   char buffer[1024];
   int i, j;
 
@@ -66,13 +69,14 @@ double benchmark_n(long num_patterns, long num_queries, long match_prob, bool si
       }
 
       std::string s(strdup(buffer));
-      patterns[i] = s;
+      patterns.push_back(s);
     }
 
-    // Create the queries.
-
-  std::string queries[num_queries];
-
+  // Create the queries.
+  // Use a vector, otherwise will run into limit on call stack
+  // for large number of queries
+  std::vector<std::string> queries;
+  queries.reserve(num_queries);
   for ( i = 0; i < num_queries; i++ ) {
 
       buffer[0] = '\0';
@@ -95,7 +99,7 @@ double benchmark_n(long num_patterns, long num_queries, long match_prob, bool si
           buffer[rounds] = '\0';
       }
 
-      queries[i] = std::string(strdup(buffer));
+      queries.push_back(std::string(strdup(buffer)));
   }
 
   if (!silent) {
@@ -129,24 +133,4 @@ double benchmark_n(long num_patterns, long num_queries, long match_prob, bool si
   }
 
   return elapsed.count() + build_time.count();
-}
-
-void makeGraphData() {
-  /*
-  prints data to the console for generation of 3d plot
-  of paraglob performance.
-  x axis is number of patterns
-  y axis is number of queries
-  z axis is the time taken to build and run the queries
-  */
-  for(long patterns = 500; patterns <= 10000; patterns += 500) {
-    std::cout << "{ ";
-    for(long queries = 1000; queries <= 20000; queries += 1000) {
-      std::cout << benchmark_n(patterns, queries, 10, true);
-      if (queries != 20000) {
-        std::cout << ", ";
-      }
-    }
-    std::cout << "},\n";
-  }
 }

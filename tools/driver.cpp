@@ -74,9 +74,14 @@ int main(int argc, char* argv[]) {
 		for (int i = 3 ; i < argc ; i++) {
 			v.push_back(std::string(argv[i]));
 		}
+
 		paraglob::Paraglob p(v);
 		paraglob::Paraglob sp(p.serialize());
-		if (p == sp) {
+
+		std::unique_ptr<std::vector<uint8_t>> a (new std::vector<uint8_t>(5, 3));
+		paraglob::Paraglob bad(std::move(a));
+
+		if (p == sp && p.in_good_standing() && !bad.in_good_standing()) {
 			std::cout << "passed" << std::endl;
 		} else {
 			std::cout << "failed" << std::endl;

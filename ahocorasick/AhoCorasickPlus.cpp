@@ -71,13 +71,6 @@ AhoCorasickPlus::EnumReturnStatus AhoCorasickPlus::addPattern
     return rv;
 }
 
-AhoCorasickPlus::EnumReturnStatus AhoCorasickPlus::addPattern
-    (const char pattern[], PatternId id)
-{
-    std::string tmpString = pattern;
-    return addPattern (tmpString, id);
-}
-
 void AhoCorasickPlus::finalize () {
     ac_trie_finalize (m_automata);
 }
@@ -86,7 +79,7 @@ void AhoCorasickPlus::search (const std::string &text, bool keep)
 {
     m_acText->astring = text.c_str();
     m_acText->length = text.size();
-    ac_trie_settext (m_automata, m_acText, (int)keep);
+    ac_trie_settext (m_automata, m_acText, keep);
 }
 
 std::vector<int> AhoCorasickPlus::findAll (const std::string& text, bool keep)
@@ -97,7 +90,7 @@ std::vector<int> AhoCorasickPlus::findAll (const std::string& text, bool keep)
   AC_MATCH_t matchp;
   unsigned int j;
 
-  while ((matchp = ac_trie_findnext (m_automata)).size)
+  while ((matchp = ac_trie_findnext(m_automata)).size)
   {
       for (j = 0; j < matchp.size; j++)
       {
@@ -107,4 +100,9 @@ std::vector<int> AhoCorasickPlus::findAll (const std::string& text, bool keep)
   }
 
   return IDs;
+}
+
+bool AhoCorasickPlus::in_good_standing() const
+{
+  return !this->m_automata->trie_open;
 }

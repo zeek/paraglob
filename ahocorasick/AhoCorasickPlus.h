@@ -63,10 +63,13 @@ public:
     EnumReturnStatus addPattern (const char pattern[], PatternId id);
     void             finalize   ();
 
-    void search   (const std::string &text, bool keep);
     std::vector<int> findAll (const std::string& text, bool keep);
 
+    /* Returns true if the automata is compiled. */
+    bool in_good_standing () const;
+
 private:
+    void search   (const std::string &text, bool keep);
     struct ac_trie      *m_automata;
     struct ac_text      *m_acText;
 };
