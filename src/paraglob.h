@@ -26,6 +26,8 @@ namespace paraglob {
     std::vector<std::string> single_wildcards;
     /* Is the paraglob well made and problem free? */
     bool good_standing;
+    /* Number of patterns in the paraglob. */
+    size_t n_patterns;
 
     /* Get a vector of the meta words in the pattern. */
     std::vector<std::string> get_meta_words(const std::string& pattern);
@@ -34,7 +36,7 @@ namespace paraglob {
 
   public:
     /* Create an empty paraglob to fill and compile later */
-    Paraglob() : good_standing (true) { }
+    Paraglob() : good_standing(true), n_patterns(0) { }
     /* Initialize a paraglob from a (large) vector of patterns and compile */
     Paraglob(const std::vector<std::string>& patterns);
     /* Initialize and compile a paraglob from a serialized one */
@@ -49,6 +51,8 @@ namespace paraglob {
     std::unique_ptr<std::vector<uint8_t>> serialize();
     /* Returns true if the paraglob is well constructed and compiled. */
     bool in_good_standing() const;
+    /* Returns the number of patterns in the paraglob. */
+    size_t size() const { return this->n_patterns; }
     /* Get readable contents of the paraglob for debugging */
     std::string str() const;
     /* Two paraglobs are equal if they contain the same patterns */

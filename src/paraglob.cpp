@@ -41,6 +41,7 @@ void paraglob::Paraglob::add(const std::string& pattern) {
         std::piecewise_construct, std::forward_as_tuple(meta_word),
         std::forward_as_tuple(meta_word, pattern)
       );
+      ++(this->n_patterns);
     } else if (status == AhoCorasickPlus::RETURNSTATUS_DUPLICATE_PATTERN) {
       this->meta_to_node_map.at(meta_word).add_pattern(pattern);
     } else { // Failed to add
