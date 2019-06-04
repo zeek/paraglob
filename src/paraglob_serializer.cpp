@@ -21,13 +21,14 @@ std::unique_ptr<std::vector<uint8_t>>
 std::vector<std::string> paraglob::ParaglobSerializer::unserialize
   (const std::unique_ptr<std::vector<uint8_t>>& vsp) {
     std::vector<std::string> ret;
-    // Serialized empty vector.
-    if (vsp->size() == 0) {
-      return ret;
-    }
 
     std::vector<uint8_t>::iterator vsp_it = vsp->begin();
     uint64_t n_strings = get_int_and_move(vsp_it);
+
+    // If n_strings is zero vsp_it will equal vsp->end
+    if (vsp_it > vsp->end()){
+      throw paraglob::underflow_error("Serialization data ended unexpectedly.");
+    }
     // Reserve space ahead of time rather than resizing in loop.
     ret.reserve(n_strings);
 
@@ -37,16 +38,26 @@ std::vector<std::string> paraglob::ParaglobSerializer::unserialize
       std::advance(vsp_it, l);
     }
 
+    // If the read was successful, we have advanced our iterator exactly to the
+    // end, and we have read exactly n_strings.
+    if (vsp_it > vsp->end()) {
+      throw paraglob::underflow_error("Serialization data ended unexpectedly.");
+    } else if (ret.size() > n_strings) {
+      throw paraglob::overflow_error("Read more patterns than expected.");
+    } else if (ret.size() < n_strings) {
+      throw paraglob::underflow_error("Read fewer patterns than expected.");
+    }
+
     return ret;
   }
 
-void paraglob::ParaglobSerializer::add_int
+inline void paraglob::ParaglobSerializer::add_int
   (uint64_t a, std::vector<uint8_t> &target) {
     uint8_t* chars = reinterpret_cast<uint8_t*>(&a);
     target.insert(target.end(), chars, chars + sizeof(uint64_t));
 }
 
-uint64_t paraglob::ParaglobSerializer::get_int_and_move
+inline uint64_t paraglob::ParaglobSerializer::get_int_and_move
   (std::vector<uint8_t>::iterator &start) {
     uint64_t ret = static_cast<uint64_t>(*start);
     std::advance(start, sizeof(uint64_t));

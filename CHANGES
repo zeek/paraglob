@@ -1,4 +1,8 @@
 
+0.1-12 | 2019-06-04 18:59:59 +0000
+
+  * Communicate internal failures by throwing exceptions. (Zeke Medley, Corelight)
+
 0.1-9 | 2019-05-29 18:03:48 +0000
 
   * Make paraglob serializable. (Zeke Medley, Corelight)

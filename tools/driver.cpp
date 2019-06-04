@@ -82,6 +82,14 @@ int main(int argc, char* argv[]) {
 			std::cout << "failed" << std::endl;
 		}
 	}
+	else if (strcmp(argv[1], "-str") == 0) {
+		std::vector<std::string> v;
+		for (int i = 3 ; i < argc ; i++) {
+			v.push_back(std::string(argv[i]));
+		}
+		paraglob::Paraglob p(v);
+		std::cout << p.str();
+	}
 	else {
 		std::cout << "Unrecognized first param\n";
 	}
