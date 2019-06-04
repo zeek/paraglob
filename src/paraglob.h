@@ -48,7 +48,7 @@ namespace paraglob {
     /* Get readable contents of the paraglob for debugging */
     std::string str() const;
     /* Two paraglobs are equal if they contain the same patterns */
-    bool operator==(const Paraglob &other);
+    bool operator==(const Paraglob &other) const;
   };
 
 } // namespace paraglob

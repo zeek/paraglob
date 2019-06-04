@@ -4,7 +4,9 @@
 
 paraglob::Paraglob::Paraglob(const std::vector<std::string>& patterns) {
   for (const std::string& pattern : patterns) {
-    this->add(pattern);
+    if ( !(this->add(pattern)) ) {
+      throw std::runtime_error("Failed to add pattern: " + pattern);
+    }
   }
   this->compile();
 }
@@ -133,23 +135,25 @@ std::unique_ptr<std::vector<uint8_t>> paraglob::Paraglob::serialize() const {
 std::string paraglob::Paraglob::str() const {
   const void * address = static_cast<const void*>(this);
   std::stringstream ss;
-  ss << address;
+
+  ss << "paraglob @ " << address << "\nmeta words: [ ";
   std::string name = ss.str();
 
   std::string out ("paraglob @ " + name + "\n" + "meta words: [ ");
   for (const std::string& meta_word : this->meta_words) {
-    out += meta_word + " ";
+    ss << meta_word << " ";
   }
-  out += "]\n";
+  ss <<"]\n";
 
-  out += "patterns: [ ";
+  ss << "patterns: [ ";
   for (auto it : this->meta_to_node_map) {
-    out += it.second.get_meta_word() + " ";
+    ss << it.second.get_meta_word() + " ";
   }
+  ss << "]\n";
 
-  return (out + "]");
+  return ss.str();
 }
 
-bool paraglob::Paraglob::operator==(const Paraglob &other) {
+bool paraglob::Paraglob::operator==(const Paraglob &other) const {
   return (this->meta_to_node_map == other.meta_to_node_map);
 }
