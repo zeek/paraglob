@@ -5,7 +5,7 @@
 paraglob::Paraglob::Paraglob(const std::vector<std::string>& patterns) {
   for (const std::string& pattern : patterns) {
     if ( !(this->add(pattern)) ) {
-      throw std::runtime_error("Failed to add pattern: " + pattern);
+      throw paraglob::add_error("Failed to add pattern: " + pattern);
     }
   }
   this->compile();

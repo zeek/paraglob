@@ -27,7 +27,7 @@ std::vector<std::string> paraglob::ParaglobSerializer::unserialize
 
     // If n_strings is zero vsp_it will equal vsp->end
     if (vsp_it > vsp->end()){
-      throw std::underflow_error("Serialization data ended unexpectedly.");
+      throw paraglob::underflow_error("Serialization data ended unexpectedly.");
     }
     // Reserve space ahead of time rather than resizing in loop.
     ret.reserve(n_strings);
@@ -41,11 +41,11 @@ std::vector<std::string> paraglob::ParaglobSerializer::unserialize
     // If the read was successful, we have advanced our iterator exactly to the
     // end, and we have read exactly n_strings.
     if (vsp_it > vsp->end()) {
-      throw std::underflow_error("Serialization data ended unexpectedly.");
+      throw paraglob::underflow_error("Serialization data ended unexpectedly.");
     } else if (ret.size() > n_strings) {
-      throw std::overflow_error("Read more patterns than expected.");
+      throw paraglob::overflow_error("Read more patterns than expected.");
     } else if (ret.size() < n_strings) {
-      throw std::underflow_error("Read fewer patterns than expected.");
+      throw paraglob::underflow_error("Read fewer patterns than expected.");
     }
 
     return ret;

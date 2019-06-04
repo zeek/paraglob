@@ -6,9 +6,9 @@
 
 #include <vector>
 #include <memory> // std::unique_ptr
-#include <stdexcept>
 
 #include <paraglob.h>
+#include "paraglob_exceptions.h"
 
 namespace paraglob {
 
