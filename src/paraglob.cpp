@@ -58,7 +58,7 @@ std::vector<std::string> paraglob::Paraglob::get(const std::string& text) {
   return patterns;
 }
 
-std::vector<std::string> paraglob::Paraglob::split_on_brackets(const std::string &in) {
+std::vector<std::string> paraglob::Paraglob::split_on_brackets(const std::string &in) const {
   std::vector<std::string> out;
   size_t pos;
   size_t prev = 0;
@@ -105,18 +105,7 @@ std::vector<std::string> paraglob::Paraglob::get_meta_words(const std::string &p
   return meta_words;
 }
 
-// Returns a string representation of the paraglob that it can rebuild
-// itself from. A paraglobs state is completely defined by the vector of patterns
-// that it contains.
-//
-// NOTE: Ideally, we'd like to serialize a paraglob in such a way that it can be
-// unserialized without having to compile itself, but this proves to be very
-// non-trivial. While its surely possible, the multifast data structure
-// maintains a complex system of nodes, pointers to nodes, and doesn't store
-// itself in memory contiguously. Without a pressing use case for this
-// functionality, right now we're choosing not to do this. Instead, paraglob
-// serializes its vector of patterns, and rebuilds itself when unserialized.
-std::unique_ptr<std::vector<uint8_t>> paraglob::Paraglob::serialize() const {
+std::vector<std::string> paraglob::Paraglob::get_patterns() const {
   std::vector<std::string> patterns;
   // Merge in all of the nodes patterns
   for (auto it : this->meta_to_node_map) {
@@ -129,27 +118,45 @@ std::unique_ptr<std::vector<uint8_t>> paraglob::Paraglob::serialize() const {
   std::sort(patterns.begin(), patterns.end());
   patterns.erase(unique(patterns.begin(), patterns.end()), patterns.end());
 
-  return paraglob::ParaglobSerializer::serialize(patterns);
+  return patterns;
+}
+
+// Returns a string representation of the paraglob that it can rebuild
+// itself from. A paraglobs state is completely defined by the vector of patterns
+// that it contains.
+//
+// NOTE: Ideally, we'd like to serialize a paraglob in such a way that it can be
+// unserialized without having to compile itself, but this proves to be very
+// non-trivial. While its surely possible, the multifast data structure
+// maintains a complex system of nodes, pointers to nodes, and doesn't store
+// itself in memory contiguously. Without a pressing use case for this
+// functionality, right now we're choosing not to do this. Instead, paraglob
+// serializes its vector of patterns, and rebuilds itself when unserialized.
+std::unique_ptr<std::vector<uint8_t>> paraglob::Paraglob::serialize() const {
+  return paraglob::ParaglobSerializer::serialize(this->get_patterns());
 }
 
 std::string paraglob::Paraglob::str() const {
-  const void * address = static_cast<const void*>(this);
   std::stringstream ss;
 
-  ss << "paraglob @ " << address << "\nmeta words: [ ";
-  std::string name = ss.str();
+  auto add_string = [&ss](const std::string& p){ ss << p << " "; };
+  auto pretty_add = [add_string](const std::vector<std::string>& v) {
+    add_string("[");
+    if (v.size() > 6) {
+      std::for_each(v.begin(), v.begin() + 3, add_string);
+      add_string("...");
+      std::for_each(v.rbegin(), v.rbegin() + 3, add_string);
+    } else {
+      std::for_each(v.begin(), v.end(), add_string);
+    }
+    add_string("]\n");
+  };
 
-  std::string out ("paraglob @ " + name + "\n" + "meta words: [ ");
-  for (const std::string& meta_word : this->meta_words) {
-    ss << meta_word << " ";
-  }
-  ss <<"]\n";
+  add_string("paraglob:\nmeta words: ");
 
-  ss << "patterns: [ ";
-  for (auto it : this->meta_to_node_map) {
-    ss << it.second.get_meta_word() + " ";
-  }
-  ss << "]\n";
+  pretty_add(this->meta_words);
+  add_string("patterns:");
+  pretty_add(this->get_patterns());
 
   return ss.str();
 }

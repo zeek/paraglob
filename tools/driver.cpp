@@ -69,6 +69,7 @@ int main(int argc, char* argv[]) {
 		}
 		paraglob::Paraglob p(v);
 		std::cout << p.get(std::string(argv[2])).size() << "\n";
+		std::cout << p.str();
 	} else if (strcmp(argv[1], "-s") == 0) {
 		std::vector<std::string> v;
 		for (int i = 3 ; i < argc ; i++) {

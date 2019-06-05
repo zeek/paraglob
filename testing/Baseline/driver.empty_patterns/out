@@ -1,1 +1,5 @@
 1
+paraglob:
+meta words:  [ cat dog fish horse frog lion ]
+ patterns:  [ * cat dog? ... lion horse frog ]
+ 

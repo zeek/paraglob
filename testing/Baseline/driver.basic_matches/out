@@ -1,1 +1,5 @@
 4
+paraglob:
+meta words:  [ d g og ]
+ patterns:  [ * *og d? d?g d[!wl]g ]
+ 
