@@ -1,4 +1,8 @@
 
+0.1-15 | 2019-06-05 19:29:03 +0000
+
+  * Improve building and testing. (Zeke Medley, Corelight)
+
 0.1-12 | 2019-06-04 18:59:59 +0000
 
   * Communicate internal failures by throwing exceptions. (Zeke Medley, Corelight)

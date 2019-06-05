@@ -28,7 +28,9 @@ namespace paraglob {
     /* Get a vector of the meta words in the pattern. */
     std::vector<std::string> get_meta_words(const std::string& pattern);
     /* Split a string on pairs of square brackets. */
-    std::vector<std::string> split_on_brackets(const std::string& in);
+    std::vector<std::string> split_on_brackets(const std::string& in) const;
+    /* Get a vector of all the patterns in the paraglob */
+    std::vector<std::string> get_patterns() const;
 
   public:
     /* Create an empty paraglob to fill with add and finalize with compile */

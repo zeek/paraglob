@@ -1,2 +1,2 @@
-# @TEST-EXEC:	paraglob-test -n dog "*" cat dog? > out
+# @TEST-EXEC:	paraglob-test -n dog "*" cat dog? fish horse frog lion> out
 # @TEST-EXEC:	btest-diff out
