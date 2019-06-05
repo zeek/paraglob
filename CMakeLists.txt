@@ -3,8 +3,7 @@ cmake_minimum_required(VERSION 2.8.12)
 
 include(RequireCXX11.cmake)
 
-set(CMAKE_CXX_FLAGS "-Wall")
-set(CMAKE_CXX_FLAGS_RELEASE "-O2")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -O3")
 
 include_directories(BEFORE ${CMAKE_CURRENT_SOURCE_DIR})
 include_directories(BEFORE ${CMAKE_CURRENT_SOURCE_DIR}/src)
@@ -16,3 +15,11 @@ endif ()
 add_subdirectory(ahocorasick)
 add_subdirectory(src)
 add_subdirectory(tools)
+
+set(summary
+    "=================|  Paraglob Config Summary  |==================="
+    "\nCXXFLAGS:        ${CMAKE_CXX_FLAGS} ${CMAKE_CXX_FLAGS_${BuildType}}"
+    "\n=================================================================")
+
+message("\n" ${summary} "\n")
+file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/config.summary ${summary})
