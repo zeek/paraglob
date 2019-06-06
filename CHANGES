@@ -1,4 +1,8 @@
 
+0.1-19 | 2019-06-06 22:11:05 +0000
+
+  * Make release default build configuration. (Zeke Medley, Corelight)
+
 0.1-15 | 2019-06-05 19:29:03 +0000
 
   * Improve building and testing. (Zeke Medley, Corelight)
