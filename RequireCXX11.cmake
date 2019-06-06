@@ -74,6 +74,7 @@ elseif ( CMAKE_CXX_COMPILER_ID STREQUAL "Clang" )
 endif ()
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -std=c++11")
 cxx11_compile_test()
 
 set(HAVE_CXX11 true)

@@ -1,9 +1,11 @@
 project(paraglob)
 cmake_minimum_required(VERSION 2.8.12)
 
+# Modifies CXX_FLAGS && CXX_FLAGS_RELASE 
 include(RequireCXX11.cmake)
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -O3")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall")
+set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -O3")
 
 include_directories(BEFORE ${CMAKE_CURRENT_SOURCE_DIR})
 include_directories(BEFORE ${CMAKE_CURRENT_SOURCE_DIR}/src)
