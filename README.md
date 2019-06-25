@@ -49,14 +49,16 @@ scripting language. In Zeek, paraglob is implemented as an
 `OpaqueType` and its syntax closely follows other similar constructs
 inside Zeek. A paraglob can only be instantiated once from a vector of
 patterns and then only supports get operations which return a vector
-of all patterns matching an input string. The syntax is as follows:
+of all patterns matching an input string. These patterns are different than
+the `patttern` type in Zeek in that they are just strings. The syntax is as 
+follows:
 
 ```
   local v = vector("*", "d?g", "*og", "d?", "d[!wl]g");
 
   local p = paraglob_init(v);
 
-  print paraglob_get(p1, "dog");
+  print paraglob_match(p1, "dog");
 ```
 out:
 ```
