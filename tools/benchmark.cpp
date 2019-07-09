@@ -1,13 +1,23 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #include "benchmark.h"
+#include <random>
+
+std::random_device dev;
+std::mt19937 rng(dev());
+std::uniform_int_distribution<std::mt19937::result_type> dist(0,RAND_MAX);
+
+int rand_int()
+  {
+  return dist(rng);
+  }
 
 static const char* benchmark_pattern_words[] = {
     "aaaaaa", "bb", "cccccccccccccccc", "ddddd", "eeeeeeeee", "fffffffffffff", "gggg"
 };
 
 const char* random_pattern_word(){
-    int idx = rand() % (sizeof(benchmark_pattern_words) / sizeof(const char*));
+    int idx = rand_int() % (sizeof(benchmark_pattern_words) / sizeof(const char*));
     return benchmark_pattern_words[idx];
 }
 
@@ -16,9 +26,9 @@ const char* random_word()
     static char buffer[1024];
 
     int j;
-    int rounds = (rand() % 25) + 5;
+    int rounds = (rand_int() % 25) + 5;
     for ( j = 0; j < rounds; j++ ) {
-        buffer[j] = (char)((rand() % 26) + 'a');
+        buffer[j] = (char)((rand_int() % 26) + 'a');
     }
 
     buffer[rounds] = '\0';
@@ -27,7 +37,6 @@ const char* random_word()
 }
 
 double benchmark(char* a, char* b, char* c, bool silent) {
-  srand(time(0));
   long num_patterns = atol(a);
   long num_queries = atol(b);
   long match_prob = atol(c);
@@ -51,13 +60,13 @@ double benchmark_n(long num_patterns, long num_queries, long match_prob, bool si
 
       buffer[0] = '\0';
 
-      int rounds = (rand() % 10) + 2;
+      int rounds = (rand_int() % 10) + 2;
       for ( j = 0; j < rounds; j++ ) {
 
           if ( j != 0 )
               strcat(buffer, "*");
 
-          if ( (rand() % 10) == 0 ) {
+          if ( (rand_int() % 10) == 0 ) {
               strcat(buffer, random_pattern_word());
             }
           else {
@@ -65,7 +74,7 @@ double benchmark_n(long num_patterns, long num_queries, long match_prob, bool si
             }
       }
 
-      std::string s(strdup(buffer));
+      std::string s(buffer);
       patterns[i] = s;
     }
 
@@ -77,9 +86,9 @@ double benchmark_n(long num_patterns, long num_queries, long match_prob, bool si
 
       buffer[0] = '\0';
 
-      if ( (rand() % 100) <= match_prob ) {
+      if ( (rand_int() % 100) <= match_prob ) {
           // Create a likely match candidate.
-          int rounds = (rand() % 5) + 1;
+          int rounds = (rand_int() % 5) + 1;
           for ( j = 0; j < rounds; j++ ) {
               strcat(buffer, random_pattern_word());
           }
@@ -87,9 +96,9 @@ double benchmark_n(long num_patterns, long num_queries, long match_prob, bool si
 
       else {
           // Create a mismatch.
-          int rounds = (rand() % 50) + 5;
+          int rounds = (rand_int() % 50) + 5;
           for ( j = 0; j < rounds; j++ ) {
-              buffer[j] = (char)((rand() % 26) + 'a');
+              buffer[j] = (char)((rand_int() % 26) + 'a');
           }
 
           buffer[rounds] = '\0';

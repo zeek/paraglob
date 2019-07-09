@@ -75,13 +75,19 @@ int main(int argc, char* argv[]) {
 		for (int i = 3 ; i < argc ; i++) {
 			v.push_back(std::string(argv[i]));
 		}
-		paraglob::Paraglob p(v);
-		paraglob::Paraglob sp(p.serialize());
-		if (p == sp) {
-			std::cout << "passed" << std::endl;
-		} else {
-			std::cout << "failed" << std::endl;
-		}
+		try
+			{
+			paraglob::Paraglob p(v);
+			paraglob::Paraglob sp(p.serialize());
+			if (p == sp)
+				std::cout << "passed" << std::endl;
+			else
+				std::cout << "failed" << std::endl;
+			}
+		catch(const paraglob::overflow_error &e)
+			{
+			std::cerr << e.what() << '\n';
+			}
 	}
 	else if (strcmp(argv[1], "-str") == 0) {
 		std::vector<std::string> v;
