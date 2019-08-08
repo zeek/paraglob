@@ -1,4 +1,14 @@
 
+0.2 | 2019-07-09 17:39:28 -0700
+
+  * Release v0.2
+
+  * Some cleanup for Coverity. (Zeke Medley, Corelight)
+
+  * Clarify the type of patterns supported. (Zeke Medley)
+
+    Also updates the syntax to reflect a small change made in the merge.
+
 0.1-19 | 2019-06-06 22:11:05 +0000
 
   * Make release default build configuration. (Zeke Medley, Corelight)
