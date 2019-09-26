@@ -2,7 +2,13 @@
 
 #include <paraglob.h>
 
-paraglob::Paraglob::Paraglob(const std::vector<std::string>& patterns) {
+#include "ahocorasick/AhoCorasickPlus.h"
+
+paraglob::Paraglob::Paraglob()
+  : my_ac(new AhoCorasickPlus) {}
+
+paraglob::Paraglob::Paraglob(const std::vector<std::string>& patterns)
+  : my_ac(new AhoCorasickPlus) {
   for (const std::string& pattern : patterns) {
     if ( !(this->add(pattern)) ) {
       throw paraglob::add_error("Failed to add pattern: " + pattern);
@@ -14,12 +20,14 @@ paraglob::Paraglob::Paraglob(const std::vector<std::string>& patterns) {
 paraglob::Paraglob::Paraglob(std::unique_ptr<std::vector<uint8_t>> serialized)
   : Paraglob(paraglob::ParaglobSerializer::unserialize(std::move(serialized))) {}
 
+paraglob::Paraglob::~Paraglob() = default;
+
 bool paraglob::Paraglob::add(const std::string& pattern) {
   AhoCorasickPlus::EnumReturnStatus status;
 
   for (const std::string& meta_word : this->get_meta_words(pattern)) {
     AhoCorasickPlus::PatternId patId = this->meta_words.size();
-    status = this->my_ac.addPattern(meta_word, patId);
+    status = this->my_ac->addPattern(meta_word, patId);
 
     if (status == AhoCorasickPlus::RETURNSTATUS_SUCCESS) {
       this->meta_words.push_back(meta_word);
@@ -39,13 +47,13 @@ bool paraglob::Paraglob::add(const std::string& pattern) {
 }
 
 void paraglob::Paraglob::compile() {
-  this->my_ac.finalize();
+  this->my_ac->finalize();
 }
 
 std::vector<std::string> paraglob::Paraglob::get(const std::string& text) {
   // Narrow to the meta-word matches
   std::vector<std::string> patterns;
-  for (int id : this->my_ac.findAll(text, false))
+  for (int id : this->my_ac->findAll(text, false))
     this->meta_to_node_map.at(this->meta_words.at(id)).merge_matches(patterns, text);
 
   // Single wildcards always need to be checked
