@@ -1,6 +1,6 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include "paraglob_serializer.h"
+#include "paraglob/serializer.h"
 
 std::unique_ptr<std::vector<uint8_t>>
   paraglob::ParaglobSerializer::serialize(const std::vector<std::string>& v) {

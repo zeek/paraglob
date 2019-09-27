@@ -25,7 +25,7 @@ arguments it will ungracefully break.
 #include <vector>
 #include <fstream>
 
-#include <paraglob.h>
+#include "paraglob/paraglob.h"
 #include "benchmark.h"
 
 int main(int argc, char* argv[]) {

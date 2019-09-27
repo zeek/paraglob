@@ -3,8 +3,8 @@
 #ifndef PARAGLOB_H
 #define PARAGLOB_H
 
-#include "paraglob_node.h"
-#include "paraglob_serializer.h"
+#include "paraglob/node.h"
+#include "paraglob/serializer.h"
 
 #include <algorithm> // sort
 #include <string>

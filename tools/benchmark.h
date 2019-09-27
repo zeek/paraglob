@@ -7,7 +7,7 @@
 #include <cstring>
 #include <chrono>
 
-#include <paraglob.h>
+#include "paraglob/paraglob.h"
 
 /* A set of benchmark functions exercising paraglob with different workloads. */
 double benchmark(char* a, char* b, char* c, bool silent);

@@ -1,6 +1,6 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include <paraglob.h>
+#include "paraglob/paraglob.h"
 
 #include "ahocorasick/AhoCorasickPlus.h"
 

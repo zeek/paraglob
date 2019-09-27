@@ -7,8 +7,8 @@
 #include <vector>
 #include <memory> // std::unique_ptr
 
-#include <paraglob.h>
-#include "paraglob_exceptions.h"
+#include "paraglob/paraglob.h"
+#include "paraglob/exceptions.h"
 
 namespace paraglob {
 
