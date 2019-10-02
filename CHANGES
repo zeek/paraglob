@@ -1,4 +1,24 @@
 
+0.3 | 2019-09-30 21:07:37 -0700
+
+  * Re-organize and install all paraglob header files (Jon Siwek, Corelight)
+
+    Moves all paraglob headers into include/paraglob and installs them.
+    Also shortened some filenames since they'll be included via paraglob
+    subdirectory now, like "paraglob/paraglob.h".
+
+    Moves ahocorasick headers into src/ since they're not part of the
+    public API.
+
+    Related to https://github.com/zeek/zeek/issues/602
+
+  * Forward declare AhoCorasickPlus in paraglob.h (Jon Siwek, Corelight)
+
+    Such that it becomes an implementation detail and no longer requires
+    installation of ahocorasick headers along with paraglob's.
+
+  * Remove empty paraglob.h (Jon Siwek, Corelight)
+
 0.2 | 2019-07-09 17:39:28 -0700
 
   * Release v0.2
