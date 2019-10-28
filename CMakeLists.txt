@@ -7,7 +7,7 @@ endif(NOT CMAKE_BUILD_TYPE)
 string(TOUPPER ${CMAKE_BUILD_TYPE} build_affix)
 
 # Modifies CXX_FLAGS && CXX_FLAGS_RELEASE
-include(RequireCXX11.cmake)
+include(RequireCXX17.cmake)
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall")
 set(CMAKE_CXX_FLAGS_RELEASE "-O3")
