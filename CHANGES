@@ -1,4 +1,10 @@
 
+0.3-5 | 2019-10-29 09:10:19 -0700
+
+  * Update RequireCXX17.cmake to recent Zeek version (Jon Siwek, Corelight)
+
+    Uses c++1z flag on Clang 4.0 for C++17
+
 0.3-4 | 2019-10-28 18:03:55 -0700
 
   * Update RequireCXX17.cmake to remove CMake < 3.0 compat code (Jon Siwek, Corelight)
