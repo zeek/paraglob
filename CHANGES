@@ -1,4 +1,14 @@
 
+0.3-4 | 2019-10-28 18:03:55 -0700
+
+  * Update RequireCXX17.cmake to remove CMake < 3.0 compat code (Jon Siwek, Corelight)
+
+  * Require CMake 3.0+ (Jon Siwek, Corelight)
+
+  * Move CMake project() after cmake_minimum_required() (Jon Siwek, Corelight)
+
+  * Switch to require C++17. (Robin Sommer, Corelight)
+
 0.3 | 2019-09-30 21:07:37 -0700
 
   * Re-organize and install all paraglob header files (Jon Siwek, Corelight)
