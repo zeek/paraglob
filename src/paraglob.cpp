@@ -27,7 +27,7 @@ bool paraglob::Paraglob::add(const std::string& pattern) {
 
   for (const std::string& meta_word : this->get_meta_words(pattern)) {
     AhoCorasickPlus::PatternId patId = this->meta_words.size();
-    status = this->my_ac->addPattern(meta_word, patId);
+    status = this->my_ac->addPattern(meta_word, patId, true);
 
     if (status == AhoCorasickPlus::RETURNSTATUS_SUCCESS) {
       this->meta_words.push_back(meta_word);

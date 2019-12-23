@@ -18,6 +18,8 @@
 
     You should have received a copy of the GNU Lesser General Public License
     along with multifast.  If not, see <http://www.gnu.org/licenses/>.
+
+ * Modified by Jon Siwek: add "copy" flag to addPattern() methods
 */
 
 #ifndef AHOCORASICKPPW_H_
@@ -59,14 +61,17 @@ public:
     AhoCorasickPlus();
     ~AhoCorasickPlus();
 
-    EnumReturnStatus addPattern (const std::string &pattern, PatternId id);
-    EnumReturnStatus addPattern (const char pattern[], PatternId id);
+    EnumReturnStatus addPattern (const std::string &pattern, PatternId id, bool copy = false);
+    EnumReturnStatus addPattern (const char pattern[], PatternId id, bool copy = false);
     void             finalize   ();
 
     void search   (const std::string &text, bool keep);
     std::vector<int> findAll (const std::string& text, bool keep);
 
 private:
+
+    EnumReturnStatus addPattern (const char* pattern, size_t len, PatternId id, bool copy = false);
+
     struct ac_trie      *m_automata;
     struct ac_text      *m_acText;
 };

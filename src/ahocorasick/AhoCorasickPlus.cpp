@@ -17,7 +17,11 @@
 
     You should have received a copy of the GNU Lesser General Public License
     along with multifast.  If not, see <http://www.gnu.org/licenses/>.
+
+ * Modified by Jon Siwek: add "copy" flag to addPattern() methods
 */
+
+#include <cstring>
 
 #include "ahocorasick.h"
 #include "AhoCorasickPlus.h"
@@ -34,21 +38,22 @@ AhoCorasickPlus::~AhoCorasickPlus ()
     delete m_acText;
 }
 
+
 AhoCorasickPlus::EnumReturnStatus AhoCorasickPlus::addPattern
-    (const std::string &pattern, PatternId id)
+    (const char* pattern, size_t len, PatternId id, bool copy)
 {
     // Adds zero-terminating string
 
     EnumReturnStatus rv = RETURNSTATUS_FAILED;
 
     AC_PATTERN_t patt;
-    patt.ptext.astring = (AC_ALPHABET_t*) pattern.c_str();
-    patt.ptext.length = pattern.size();
+    patt.ptext.astring = (AC_ALPHABET_t*) pattern;
+    patt.ptext.length = len;
     patt.id.u.number = id;
     patt.rtext.astring = NULL;
     patt.rtext.length = 0;
 
-    AC_STATUS_t status = ac_trie_add (m_automata, &patt, 0);
+    AC_STATUS_t status = ac_trie_add (m_automata, &patt, copy);
 
     switch (status)
     {
@@ -72,10 +77,15 @@ AhoCorasickPlus::EnumReturnStatus AhoCorasickPlus::addPattern
 }
 
 AhoCorasickPlus::EnumReturnStatus AhoCorasickPlus::addPattern
-    (const char pattern[], PatternId id)
+    (const std::string &pattern, PatternId id, bool copy)
 {
-    std::string tmpString = pattern;
-    return addPattern (tmpString, id);
+    return addPattern (pattern.c_str(), pattern.size(), id, copy);
+}
+
+AhoCorasickPlus::EnumReturnStatus AhoCorasickPlus::addPattern
+    (const char pattern[], PatternId id, bool copy)
+{
+    return addPattern (pattern, strlen(pattern), id, copy);
 }
 
 void AhoCorasickPlus::finalize () {
