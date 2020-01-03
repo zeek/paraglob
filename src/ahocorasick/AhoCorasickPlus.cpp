@@ -21,8 +21,6 @@
  * Modified by Jon Siwek: add "copy" flag to addPattern() methods
 */
 
-#include <cstring>
-
 #include "ahocorasick.h"
 #include "AhoCorasickPlus.h"
 
@@ -40,15 +38,15 @@ AhoCorasickPlus::~AhoCorasickPlus ()
 
 
 AhoCorasickPlus::EnumReturnStatus AhoCorasickPlus::addPattern
-    (const char* pattern, size_t len, PatternId id, bool copy)
+    (std::string_view pattern, PatternId id, bool copy)
 {
     // Adds zero-terminating string
 
     EnumReturnStatus rv = RETURNSTATUS_FAILED;
 
     AC_PATTERN_t patt;
-    patt.ptext.astring = (AC_ALPHABET_t*) pattern;
-    patt.ptext.length = len;
+    patt.ptext.astring = (AC_ALPHABET_t*) pattern.data();
+    patt.ptext.length = pattern.size();
     patt.id.u.number = id;
     patt.rtext.astring = NULL;
     patt.rtext.length = 0;
@@ -74,18 +72,6 @@ AhoCorasickPlus::EnumReturnStatus AhoCorasickPlus::addPattern
             break;
     }
     return rv;
-}
-
-AhoCorasickPlus::EnumReturnStatus AhoCorasickPlus::addPattern
-    (const std::string &pattern, PatternId id, bool copy)
-{
-    return addPattern (pattern.c_str(), pattern.size(), id, copy);
-}
-
-AhoCorasickPlus::EnumReturnStatus AhoCorasickPlus::addPattern
-    (const char pattern[], PatternId id, bool copy)
-{
-    return addPattern (pattern, strlen(pattern), id, copy);
 }
 
 void AhoCorasickPlus::finalize () {

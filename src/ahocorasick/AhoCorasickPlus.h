@@ -26,6 +26,7 @@
 #define AHOCORASICKPPW_H_
 
 #include <string>
+#include <string_view>
 #include <queue>
 #include <vector>
 
@@ -61,16 +62,13 @@ public:
     AhoCorasickPlus();
     ~AhoCorasickPlus();
 
-    EnumReturnStatus addPattern (const std::string &pattern, PatternId id, bool copy = false);
-    EnumReturnStatus addPattern (const char pattern[], PatternId id, bool copy = false);
+    EnumReturnStatus addPattern (std::string_view pattern, PatternId id, bool copy = false);
     void             finalize   ();
 
     void search   (const std::string &text, bool keep);
     std::vector<int> findAll (const std::string& text, bool keep);
 
 private:
-
-    EnumReturnStatus addPattern (const char* pattern, size_t len, PatternId id, bool copy = false);
 
     struct ac_trie      *m_automata;
     struct ac_text      *m_acText;
