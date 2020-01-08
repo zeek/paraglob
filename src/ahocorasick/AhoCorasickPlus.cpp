@@ -19,6 +19,7 @@
     along with multifast.  If not, see <http://www.gnu.org/licenses/>.
 
  * Modified by Jon Siwek: add "copy" flag to addPattern() methods
+ * Modified by Jon Siwek: fix addPattern() to set pattern ID type to "number"
 */
 
 #include "ahocorasick.h"
@@ -48,6 +49,7 @@ AhoCorasickPlus::EnumReturnStatus AhoCorasickPlus::addPattern
     patt.ptext.astring = (AC_ALPHABET_t*) pattern.data();
     patt.ptext.length = pattern.size();
     patt.id.u.number = id;
+    patt.id.type = AC_PATTID_TYPE_NUMBER;
     patt.rtext.astring = NULL;
     patt.rtext.length = 0;
 
