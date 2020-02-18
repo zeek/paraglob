@@ -2,6 +2,7 @@
 
 #include "benchmark.h"
 #include <random>
+#include <memory>
 
 std::random_device dev;
 std::mt19937 rng(dev());
@@ -52,7 +53,7 @@ double benchmark_n(long num_patterns, long num_queries, long match_prob, bool si
   }
 
   // Create the patterns.
-  std::string patterns[num_patterns];
+  std::unique_ptr<std::string[]> patterns(new std::string[num_patterns]);
   char buffer[1024];
   int i, j;
 
@@ -80,7 +81,7 @@ double benchmark_n(long num_patterns, long num_queries, long match_prob, bool si
 
     // Create the queries.
 
-  std::string queries[num_queries];
+  std::unique_ptr<std::string[]> queries(new std::string[num_queries]);
 
   for ( i = 0; i < num_queries; i++ ) {
 
@@ -112,7 +113,8 @@ double benchmark_n(long num_patterns, long num_queries, long match_prob, bool si
   }
   auto build_start = std::chrono::high_resolution_clock::now();
   paraglob::Paraglob myGlob;
-  for (std::string p : patterns) {
+  for ( i = 0; i < num_patterns; ++i ) {
+    const auto& p = patterns[i];
     myGlob.add(p);
   }
   myGlob.compile();
@@ -124,7 +126,8 @@ double benchmark_n(long num_patterns, long num_queries, long match_prob, bool si
   if (!silent) {
     std::cout << "making queries \n";
   }
-  for (std::string q : queries) {
+  for ( i = 0; i < num_queries; ++i ) {
+    const auto& q = queries[i];
     myGlob.get(q);
   }
 
