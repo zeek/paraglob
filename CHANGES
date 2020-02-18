@@ -1,4 +1,10 @@
 
+0.4.1 | 2020-02-18 14:24:17 -0800
+
+  * Release 0.4.1.
+
+  * Replace non-standard variable-length-array usage in benchmark (Jon Siwek, Corelight)
+
 0.4 | 2020-01-13 11:32:09 +0000
 
   * Release 0.4.
