@@ -1,4 +1,23 @@
 
+0.3.1 | 2020-02-22 16:03:24 -0800
+
+  * Release v0.3.1
+
+  * Replace non-standard variable-length-array usage in benchmark (Jon Siwek, Corelight)
+
+  * Set pattern ID type in AhoCorasickPlus::addPattern (Jon Siwek, Corelight)
+
+    Else there's potential for invalid memory accesses, e.g. if the memory
+    for pattern ID type happens to be equal to the "string" ID type and then
+    it accesses the associated union field which hasn't been initialized.
+
+  * Fix use-after-free bug (Jon Siwek, Corelight)
+
+    The default assumption of AhoCorasick::addPattern() was that the memory
+    used to store pattern strings is available for the entire lifetime of
+    the process, but Paraglob initialization was passing in temporary
+    std::string objects.
+
 0.3 | 2019-09-30 21:07:37 -0700
 
   * Re-organize and install all paraglob header files (Jon Siwek, Corelight)
