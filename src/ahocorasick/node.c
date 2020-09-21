@@ -320,6 +320,9 @@ static int node_edge_compare (const void *l, const void *r)
  *****************************************************************************/
 void node_sort_edges (ACT_NODE_t *nod)
 {
+    if ( ! nod->outgoing )
+        return;
+
     qsort ((void *)nod->outgoing, nod->outgoing_size, 
             sizeof(struct act_edge), node_edge_compare);
 }

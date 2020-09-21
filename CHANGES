@@ -1,4 +1,13 @@
 
+0.5.0-2 | 2020-09-21 13:35:55 -0700
+
+  * Avoid calling qsort() with null pointer argument (Jon Siwek, Corelight)
+
+    Likely no ill-effects of doing so since number of elements was always
+    observed to be zero whenever a null pointer was passed, but qsort() may
+    technically be annotated with a `nonnull` attribute, so that triggers an
+    error when using `-fsanitize=nonnull-attribute`.
+
 0.5.0 | 2020-02-18 15:21:21 -0800
 
   * Release 0.5.0.
