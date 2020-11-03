@@ -15,8 +15,8 @@ set(CMAKE_CXX_FLAGS_RELEASE "-O3")
 include_directories(BEFORE ${CMAKE_CURRENT_SOURCE_DIR}/include)
 include_directories(BEFORE ${CMAKE_CURRENT_SOURCE_DIR}/src)
 
-if (NOT INSTALL_LIB_DIR)
-  set(INSTALL_LIB_DIR ${CMAKE_INSTALL_PREFIX}/lib)
+if (NOT CMAKE_INSTALL_LIBDIR)
+  set(CMAKE_INSTALL_LIBDIR lib)
 endif ()
 
 add_subdirectory(src)

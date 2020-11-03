@@ -16,4 +16,4 @@ add_library(paraglob STATIC
 )
 set_target_properties(paraglob PROPERTIES OUTPUT_NAME paraglob)
 
-install(TARGETS paraglob DESTINATION lib)
+install(TARGETS paraglob DESTINATION ${CMAKE_INSTALL_LIBDIR})
