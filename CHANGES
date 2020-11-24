@@ -1,4 +1,10 @@
 
+0.5.0-4 | 2020-11-24 15:12:15 -0800
+
+  * Rely on GNUInstallDirs for libdir selection (Christian Kreibich, Corelight)
+
+    This allows libdir overrides to be inherited in Zeek-bundled installs.
+
 0.5.0-2 | 2020-09-21 13:35:55 -0700
 
   * Avoid calling qsort() with null pointer argument (Jon Siwek, Corelight)
