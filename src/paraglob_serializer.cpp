@@ -9,7 +9,7 @@ std::unique_ptr<std::vector<uint8_t>>
 
     for (const std::string &s: v) {
       add_int(s.length(), *ret);
-      for (const uint8_t &c : s) {
+      for (uint8_t c : s) { // copy here because of type change
         ret->push_back(c);
       }
     }
