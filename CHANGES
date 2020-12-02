@@ -1,4 +1,8 @@
 
+0.5.0-8 | 2020-12-02 11:06:31 -0800
+
+  * Update minimum required CMake to 3.5 (Jon Siwek, Corelight)
+
 0.5.0-6 | 2020-12-01 09:54:14 -0800
 
   * Fix compiler warning about copying loop variable. (Robin Sommer, Corelight)
