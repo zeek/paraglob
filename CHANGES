@@ -1,4 +1,16 @@
 
+0.6.0-2 | 2021-04-21 14:02:25 -0700
+
+  * Fix a stringop-truncation warning in mpool_strndup() (Jon Siwek, Corelight)
+
+    The previous version did not actually have a problem since it explicitly
+    added a null-terminator after the strncpy(), but as expected by
+    semantics/docs of mpool_strndup(), no usages seem to depend on the
+    behavior of strncpy() over a straight memcpy(), so that is more
+    appropriate and fixes the compiler warning.
+
+    Related to https://github.com/zeek/zeek/issues/1515
+
 0.6.0 | 2020-12-07 17:50:29 +0000
 
   * Release 0.6.0.

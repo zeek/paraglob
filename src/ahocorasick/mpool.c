@@ -171,7 +171,7 @@ void *mpool_strndup (struct mpool *pool, const char *str, size_t n)
 
     if ((ret = mpool_malloc(pool, n+1)))
     {
-        strncpy((char *)ret, str, n);
+        memcpy(ret, str, n);
         ((char *)ret)[n] = '\0';
     }
 
