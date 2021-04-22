@@ -19,7 +19,11 @@ include_directories(BEFORE ${CMAKE_CURRENT_SOURCE_DIR}/include)
 include_directories(BEFORE ${CMAKE_CURRENT_SOURCE_DIR}/src)
 
 add_subdirectory(src)
-add_subdirectory(tools)
+
+if ( NOT MSVC ) 
+    # The tools aren't currently supported on windows.
+    add_subdirectory(tools)
+endif()
 
 install(DIRECTORY include/paraglob DESTINATION include FILES_MATCHING PATTERN "*.h")
 

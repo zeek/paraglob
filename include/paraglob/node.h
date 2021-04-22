@@ -9,6 +9,7 @@
 #include <fnmatch.h>
 #include <string>
 #include <vector>
+#include <iterator>
 
 namespace paraglob {
 
