@@ -116,7 +116,7 @@ std::vector<std::string> paraglob::Paraglob::get_meta_words(const std::string &p
 std::vector<std::string> paraglob::Paraglob::get_patterns() const {
   std::vector<std::string> patterns;
   // Merge in all of the nodes patterns
-  for (auto it : this->meta_to_node_map) {
+  for (const auto& it : this->meta_to_node_map) {
     it.second.merge_patterns(patterns);
   }
   if (this->single_wildcards.size() > 0)
