@@ -18,7 +18,7 @@ paraglob::Paraglob::Paraglob(const std::vector<std::string>& patterns)
 }
 
 paraglob::Paraglob::Paraglob(std::unique_ptr<std::vector<uint8_t>> serialized)
-  : Paraglob(paraglob::ParaglobSerializer::unserialize(std::move(serialized))) {}
+  : Paraglob(paraglob::ParaglobSerializer::unserialize(serialized)) {}
 
 paraglob::Paraglob::~Paraglob() = default;
 
@@ -92,7 +92,7 @@ std::vector<std::string> paraglob::Paraglob::get_meta_words(const std::string &p
   std::vector<std::string> meta_words;
 
   // Split the pattern by brackets
-  for (std::string word : split_on_brackets(pattern)) {
+  for (const std::string& word : split_on_brackets(pattern)) {
     // Parse each bracket section
     std::size_t prev = 0, pos;
 
@@ -116,7 +116,7 @@ std::vector<std::string> paraglob::Paraglob::get_meta_words(const std::string &p
 std::vector<std::string> paraglob::Paraglob::get_patterns() const {
   std::vector<std::string> patterns;
   // Merge in all of the nodes patterns
-  for (auto it : this->meta_to_node_map) {
+  for (const auto& it : this->meta_to_node_map) {
     it.second.merge_patterns(patterns);
   }
   if (this->single_wildcards.size() > 0)
