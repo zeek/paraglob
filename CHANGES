@@ -1,3 +1,7 @@
+0.6.0-8 | 2022-10-18 10:11:31 -0700
+
+  * Adapted paraglob to compile with MSVC for windows environment. (Elad Solomon)
+
 0.6.0-6 | 2022-10-06 08:58:47 -0700
 
   * clang-tidy: Fix a couple of minor issues (Tim Wojtulewicz, Corelight)

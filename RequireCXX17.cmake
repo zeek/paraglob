@@ -49,6 +49,8 @@ elseif ( CMAKE_CXX_COMPILER_ID STREQUAL "AppleClang" )
                 "${required_apple_clang_version} for C++17 support, detected: "
                 "${CMAKE_CXX_COMPILER_VERSION}")
     endif ()
+elseif ( MSVC )
+    set(cxx17_flag "/std:c++17")
 else()
     # Unrecognized compiler: fine to be permissive of other compilers as long
     # as they are able to support C++17 and can compile the test program, but
