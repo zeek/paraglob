@@ -5,3 +5,6 @@
 Makefile
 .cmake
 build
+
+# clangd
+.cache
