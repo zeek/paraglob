@@ -6,6 +6,7 @@
 
 #include <vector>
 #include <memory> // std::unique_ptr
+#include <cstdint>
 
 #include "paraglob/paraglob.h"
 #include "paraglob/exceptions.h"

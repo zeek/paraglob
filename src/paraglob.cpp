@@ -4,6 +4,8 @@
 
 #include "ahocorasick/AhoCorasickPlus.h"
 
+#include <cstdint>
+
 paraglob::Paraglob::Paraglob()
   : my_ac(new AhoCorasickPlus) {}
 
