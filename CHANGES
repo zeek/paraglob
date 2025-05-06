@@ -1,3 +1,11 @@
+0.6.0-13 | 2025-05-06 12:41:36 -0700
+
+  * Add `#include <cstdint>` to header files and source file (i2z1)
+
+  * Add CodeQL workflow for GitHub code scanning (LGTM Migrator)
+
+  * Add clangd's .cache folder to .gitignore (Tim Wojtulewicz, Corelight)
+
 0.6.0-8 | 2022-10-18 10:11:31 -0700
 
   * Adapted paraglob to compile with MSVC for windows environment. (Elad Solomon)

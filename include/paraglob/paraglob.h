@@ -13,6 +13,8 @@
 #include <vector>
 #include <memory> // std::unique_ptr
 
+#include <cstdint>
+
 class AhoCorasickPlus;
 
 namespace paraglob {
