@@ -8,8 +8,7 @@ if(NOT CMAKE_BUILD_TYPE)
 endif(NOT CMAKE_BUILD_TYPE)
 string(TOUPPER ${CMAKE_BUILD_TYPE} build_affix)
 
-# Modifies CXX_FLAGS && CXX_FLAGS_RELEASE
-include(RequireCXX17.cmake)
+include(RequireCXXStd.cmake)
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall")
 set(CMAKE_CXX_FLAGS_RELEASE "-O3")
@@ -20,7 +19,7 @@ include_directories(BEFORE ${CMAKE_CURRENT_SOURCE_DIR}/src)
 
 add_subdirectory(src)
 
-if ( NOT MSVC ) 
+if ( NOT MSVC )
     # The tools aren't currently supported on windows.
     add_subdirectory(tools)
 endif()
