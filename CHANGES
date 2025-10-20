@@ -1,3 +1,7 @@
+0.6.0-15 | 2025-10-20 14:59:12 -0700
+
+  * Require C++20 for builds (Tim Wojtulewicz, Corelight)
+
 0.6.0-13 | 2025-05-06 12:41:36 -0700
 
   * Add `#include <cstdint>` to header files and source file (i2z1)
