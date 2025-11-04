@@ -3,9 +3,9 @@ project(paraglob)
 
 include(GNUInstallDirs)
 
-if(NOT CMAKE_BUILD_TYPE)
+if (NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE Release)
-endif(NOT CMAKE_BUILD_TYPE)
+endif (NOT CMAKE_BUILD_TYPE)
 string(TOUPPER ${CMAKE_BUILD_TYPE} build_affix)
 
 include(RequireCXXStd.cmake)
@@ -19,18 +19,21 @@ include_directories(BEFORE ${CMAKE_CURRENT_SOURCE_DIR}/src)
 
 add_subdirectory(src)
 
-if ( NOT MSVC )
+if (NOT MSVC)
     # The tools aren't currently supported on windows.
     add_subdirectory(tools)
-endif()
+endif ()
 
-install(DIRECTORY include/paraglob DESTINATION include FILES_MATCHING PATTERN "*.h")
+install(
+    DIRECTORY include/paraglob
+    DESTINATION include
+    FILES_MATCHING
+    PATTERN "*.h")
 
 set(summary
     "=================|  Paraglob Config Summary  |==================="
     "\nBUILD_TYPE:          ${build_affix}"
     "\nCXX_FLAGS:           ${CMAKE_CXX_FLAGS} ${CMAKE_CXX_FLAGS_${build_affix}}"
-    "\n================================================================="
-    )
+    "\n=================================================================")
 
 message("\n" ${summary} "\n")

@@ -1,0 +1,41 @@
+# See https://pre-commit.com for more information
+# See https://pre-commit.com/hooks.html for more hooks
+#
+repos:
+- repo: local
+  hooks:
+  - id: license
+    name: Check for license headers
+    entry: ./.license-header.py
+    language: python
+    files: '\.(h|c|cpp|cc)$'
+    types: [file]
+    exclude: '^src/ahocorasick/.*'
+
+  - id: btest-command-commented
+    name: Check that all BTest command lines are commented out
+    entry: '^\s*@TEST-'
+    language: pygrep
+    files: '^testing/btest/.*$'
+
+- repo: https://github.com/pre-commit/mirrors-clang-format
+  rev: v20.1.8
+  hooks:
+  - id: clang-format
+    types_or:
+      - "c"
+      - "c++"
+      - "json"
+    exclude: '^src/ahocorasick/.*'
+
+- repo: https://github.com/cheshirekow/cmake-format-precommit
+  rev: v0.6.13
+  hooks:
+  - id: cmake-format
+    exclude: '^src/ahocorasick/.*'
+
+- repo: https://github.com/crate-ci/typos
+  rev: v1.35.3
+  hooks:
+    - id: typos
+      exclude: '^(.typos.toml|src/ahocorasick/.*)$'

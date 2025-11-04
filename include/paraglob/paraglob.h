@@ -3,24 +3,23 @@
 #ifndef PARAGLOB_H
 #define PARAGLOB_H
 
-#include "paraglob/node.h"
-#include "paraglob/serializer.h"
-
 #include <algorithm> // sort
-#include <string>
+#include <cstdint>
+#include <memory>  // std::unique_ptr
 #include <sstream> // str() function
+#include <string>
 #include <unordered_map>
 #include <vector>
-#include <memory> // std::unique_ptr
 
-#include <cstdint>
+#include "paraglob/node.h"
+#include "paraglob/serializer.h"
 
 class AhoCorasickPlus;
 
 namespace paraglob {
 
-  class Paraglob {
-  private:
+class Paraglob {
+private:
     std::unique_ptr<AhoCorasickPlus> my_ac;
     std::unordered_map<std::string, paraglob::ParaglobNode> meta_to_node_map;
     std::vector<std::string> meta_words;
@@ -34,7 +33,7 @@ namespace paraglob {
     /* Get a vector of all the patterns in the paraglob */
     std::vector<std::string> get_patterns() const;
 
-  public:
+public:
     /* Create an empty paraglob to fill with add and finalize with compile */
     Paraglob();
     /* Initialize a paraglob from a (large) vector of patterns and compile */
@@ -54,8 +53,8 @@ namespace paraglob {
     /* Get readable contents of the paraglob for debugging */
     std::string str() const;
     /* Two paraglobs are equal if they contain the same patterns */
-    bool operator==(const Paraglob &other) const;
-  };
+    bool operator==(const Paraglob& other) const;
+};
 
 } // namespace paraglob
 

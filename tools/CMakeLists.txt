@@ -1,4 +1,3 @@
-
 set(SOURCES driver.cpp benchmark.cpp)
 add_executable(paraglob-test ${SOURCES})
 

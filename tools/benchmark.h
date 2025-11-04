@@ -3,9 +3,9 @@
 #ifndef BENCHMARK_H
 #define BENCHMARK_H
 
-#include <iostream>
-#include <cstring>
 #include <chrono>
+#include <cstring>
+#include <iostream>
 
 #include "paraglob/paraglob.h"
 
