@@ -1,18 +1,14 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#ifndef PARAGLOB_H
-#define PARAGLOB_H
+#pragma once
 
-#include <algorithm> // sort
 #include <cstdint>
-#include <memory>  // std::unique_ptr
-#include <sstream> // str() function
+#include <memory> // std::unique_ptr
 #include <string>
 #include <unordered_map>
 #include <vector>
 
 #include "paraglob/node.h"
-#include "paraglob/serializer.h"
 
 class AhoCorasickPlus;
 
@@ -57,5 +53,3 @@ public:
 };
 
 } // namespace paraglob
-
-#endif

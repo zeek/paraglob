@@ -1,8 +1,11 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
+#include "paraglob/exceptions.h"
 #include "paraglob/serializer.h"
 
-std::unique_ptr<std::vector<uint8_t>> paraglob::ParaglobSerializer::serialize(const std::vector<std::string>& v) {
+using namespace paraglob;
+
+std::unique_ptr<std::vector<uint8_t>> ParaglobSerializer::serialize(const std::vector<std::string>& v) {
     std::unique_ptr<std::vector<uint8_t>> ret(new std::vector<uint8_t>);
     add_int(v.size(), *ret);
 
@@ -17,7 +20,7 @@ std::unique_ptr<std::vector<uint8_t>> paraglob::ParaglobSerializer::serialize(co
 }
 
 // ret -> [<n_strings><len_1><str_1>, <len_2><str_2>, ... <len_n><str_n>]
-std::vector<std::string> paraglob::ParaglobSerializer::unserialize(const std::unique_ptr<std::vector<uint8_t>>& vsp) {
+std::vector<std::string> ParaglobSerializer::unserialize(const std::unique_ptr<std::vector<uint8_t>>& vsp) {
     std::vector<std::string> ret;
 
     std::vector<uint8_t>::iterator vsp_it = vsp->begin();
@@ -51,12 +54,12 @@ std::vector<std::string> paraglob::ParaglobSerializer::unserialize(const std::un
     return ret;
 }
 
-inline void paraglob::ParaglobSerializer::add_int(uint64_t a, std::vector<uint8_t>& target) {
+inline void ParaglobSerializer::add_int(uint64_t a, std::vector<uint8_t>& target) {
     uint8_t* chars = reinterpret_cast<uint8_t*>(&a);
     target.insert(target.end(), chars, chars + sizeof(uint64_t));
 }
 
-inline uint64_t paraglob::ParaglobSerializer::get_int_and_move(std::vector<uint8_t>::iterator& start) {
+inline uint64_t ParaglobSerializer::get_int_and_move(std::vector<uint8_t>::iterator& start) {
     uint64_t ret = static_cast<uint64_t>(*start);
     std::advance(start, sizeof(uint64_t));
     return ret;

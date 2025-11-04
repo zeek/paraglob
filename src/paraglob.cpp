@@ -3,12 +3,17 @@
 #include "paraglob/paraglob.h"
 
 #include <cstdint>
+#include <sstream>
 
 #include "ahocorasick/AhoCorasickPlus.h"
+#include "paraglob/exceptions.h"
+#include "paraglob/serializer.h"
 
-paraglob::Paraglob::Paraglob() : my_ac(new AhoCorasickPlus) {}
+using namespace paraglob;
 
-paraglob::Paraglob::Paraglob(const std::vector<std::string>& patterns) : my_ac(new AhoCorasickPlus) {
+Paraglob::Paraglob() : my_ac(new AhoCorasickPlus) {}
+
+Paraglob::Paraglob(const std::vector<std::string>& patterns) : my_ac(new AhoCorasickPlus) {
     for ( const std::string& pattern : patterns ) {
         if ( ! (this->add(pattern)) ) {
             throw paraglob::add_error("Failed to add pattern: " + pattern);
@@ -17,12 +22,12 @@ paraglob::Paraglob::Paraglob(const std::vector<std::string>& patterns) : my_ac(n
     this->compile();
 }
 
-paraglob::Paraglob::Paraglob(std::unique_ptr<std::vector<uint8_t>> serialized)
-    : Paraglob(paraglob::ParaglobSerializer::unserialize(serialized)) {}
+Paraglob::Paraglob(std::unique_ptr<std::vector<uint8_t>> serialized)
+    : Paraglob(ParaglobSerializer::unserialize(serialized)) {}
 
-paraglob::Paraglob::~Paraglob() = default;
+Paraglob::~Paraglob() = default;
 
-bool paraglob::Paraglob::add(const std::string& pattern) {
+bool Paraglob::add(const std::string& pattern) {
     AhoCorasickPlus::EnumReturnStatus status;
 
     for ( const std::string& meta_word : this->get_meta_words(pattern) ) {
@@ -46,9 +51,9 @@ bool paraglob::Paraglob::add(const std::string& pattern) {
     return true;
 }
 
-void paraglob::Paraglob::compile() { this->my_ac->finalize(); }
+void Paraglob::compile() { this->my_ac->finalize(); }
 
-std::vector<std::string> paraglob::Paraglob::get(const std::string& text) {
+std::vector<std::string> Paraglob::get(const std::string& text) {
     // Narrow to the meta-word matches
     std::vector<std::string> patterns;
     for ( int id : this->my_ac->findAll(text, false) )
@@ -64,7 +69,7 @@ std::vector<std::string> paraglob::Paraglob::get(const std::string& text) {
     return patterns;
 }
 
-std::vector<std::string> paraglob::Paraglob::split_on_brackets(const std::string& in) const {
+std::vector<std::string> Paraglob::split_on_brackets(const std::string& in) const {
     std::vector<std::string> out;
     size_t pos;
     size_t prev = 0;
@@ -87,7 +92,7 @@ std::vector<std::string> paraglob::Paraglob::split_on_brackets(const std::string
 }
 
 
-std::vector<std::string> paraglob::Paraglob::get_meta_words(const std::string& pattern) {
+std::vector<std::string> Paraglob::get_meta_words(const std::string& pattern) {
     std::vector<std::string> meta_words;
 
     // Split the pattern by brackets
@@ -112,7 +117,7 @@ std::vector<std::string> paraglob::Paraglob::get_meta_words(const std::string& p
     return meta_words;
 }
 
-std::vector<std::string> paraglob::Paraglob::get_patterns() const {
+std::vector<std::string> Paraglob::get_patterns() const {
     std::vector<std::string> patterns;
     // Merge in all of the nodes patterns
     for ( const auto& it : this->meta_to_node_map ) {
@@ -139,11 +144,11 @@ std::vector<std::string> paraglob::Paraglob::get_patterns() const {
 // itself in memory contiguously. Without a pressing use case for this
 // functionality, right now we're choosing not to do this. Instead, paraglob
 // serializes its vector of patterns, and rebuilds itself when unserialized.
-std::unique_ptr<std::vector<uint8_t>> paraglob::Paraglob::serialize() const {
-    return paraglob::ParaglobSerializer::serialize(this->get_patterns());
+std::unique_ptr<std::vector<uint8_t>> Paraglob::serialize() const {
+    return ParaglobSerializer::serialize(this->get_patterns());
 }
 
-std::string paraglob::Paraglob::str() const {
+std::string Paraglob::str() const {
     std::stringstream ss;
 
     auto add_string = [&ss](const std::string& p) { ss << p << " "; };
@@ -169,6 +174,4 @@ std::string paraglob::Paraglob::str() const {
     return ss.str();
 }
 
-bool paraglob::Paraglob::operator==(const Paraglob& other) const {
-    return (this->meta_to_node_map == other.meta_to_node_map);
-}
+bool Paraglob::operator==(const Paraglob& other) const { return (this->meta_to_node_map == other.meta_to_node_map); }

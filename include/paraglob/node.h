@@ -2,8 +2,7 @@
 //
 // Node class for paraglob. Holds a meta word and its associated patterns.
 
-#ifndef PARAGLOBNODE_H
-#define PARAGLOBNODE_H
+#pragma once
 
 #include <fnmatch.h>
 #include <algorithm> // copy_if
@@ -45,5 +44,3 @@ private:
 };
 
 } // namespace paraglob
-
-#endif

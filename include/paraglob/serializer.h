@@ -1,15 +1,11 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 // Class for performing serialization and deserialization of paraglob.
 
-#ifndef PARAGLOB_SERIALIZER_H
-#define PARAGLOB_SERIALIZER_H
+#pragma once
 
 #include <cstdint>
 #include <memory> // std::unique_ptr
 #include <vector>
-
-#include "paraglob/exceptions.h"
-#include "paraglob/paraglob.h"
 
 namespace paraglob {
 
@@ -30,5 +26,3 @@ private:
 };
 
 } // namespace paraglob
-
-#endif

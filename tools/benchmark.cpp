@@ -2,8 +2,11 @@
 
 #include "benchmark.h"
 
+#include <iostream>
 #include <memory>
 #include <random>
+
+#include "paraglob/paraglob.h"
 
 std::random_device dev;
 std::mt19937 rng(dev());
@@ -15,12 +18,12 @@ static const char* benchmark_pattern_words[] = {
     "aaaaaa", "bb", "cccccccccccccccc", "ddddd", "eeeeeeeee", "fffffffffffff", "gggg",
 };
 
-const char* random_pattern_word() {
+static const char* random_pattern_word() {
     int idx = rand_int() % (sizeof(benchmark_pattern_words) / sizeof(const char*));
     return benchmark_pattern_words[idx];
 }
 
-const char* random_word() {
+static const char* random_word() {
     static char buffer[1024];
 
     int j;

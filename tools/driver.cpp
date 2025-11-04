@@ -21,11 +21,11 @@ arguments it will ungracefully break.
 */
 
 #include <cstring>
-#include <fstream>
 #include <iostream>
 #include <vector>
 
 #include "benchmark.h"
+#include "paraglob/exceptions.h"
 #include "paraglob/paraglob.h"
 
 int main(int argc, char* argv[]) {
