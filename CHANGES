@@ -1,3 +1,13 @@
+0.6.0-20 | 2025-11-06 09:03:38 -0700
+
+  * Pass the right arguments to the benchmarker (Tim Wojtulewicz, Corelight)
+
+  * Additional minor formatting in the header files (Tim Wojtulewicz, Corelight)
+
+  * Code cleanup (Tim Wojtulewicz, Corelight)
+
+  * Add pre-commit setup based on Zeek's (Tim Wojtulewicz, Corelight)
+
 0.6.0-15 | 2025-10-20 14:59:12 -0700
 
   * Require C++20 for builds (Tim Wojtulewicz, Corelight)

@@ -50,7 +50,7 @@ scripting language. In Zeek, paraglob is implemented as an
 inside Zeek. A paraglob can only be instantiated once from a vector of
 patterns and then only supports get operations which return a vector
 of all patterns matching an input string. These patterns are different than
-the `patttern` type in Zeek in that they are just strings. The syntax is as 
+the `pattern` type in Zeek in that they are just strings. The syntax is as 
 follows:
 
 ```

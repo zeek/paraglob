@@ -1,5 +1,5 @@
-# Check for a specific C++ standard level, and require the compiler to
-# support that via some CMake settings.
+# Check for a specific C++ standard level, and require the compiler to support
+# that via some CMake settings.
 
 if (DEFINED ZEEK_CXX_STD)
     return()
@@ -22,9 +22,8 @@ endif ()
 
 include(CheckCXXSourceCompiles)
 
-# The <version> header is a good baseline version of C++20 support for us
-# since we can use it to determine support for various features in other
-# places.
+# The <version> header is a good baseline version of C++20 support for us since
+# we can use it to determine support for various features in other places.
 set(cxx_std_testcode "#include <version>
      int main() { }")
 
