@@ -4,13 +4,14 @@
 
 #include <cstdint>
 #include <memory> // std::unique_ptr
+#include <set>
 #include <string>
 #include <unordered_map>
 #include <vector>
 
 #include "paraglob/node.h"
 
-class AhoCorasickPlus;
+class aca_handle;
 
 namespace paraglob {
 
@@ -56,9 +57,10 @@ private:
     /* Get a vector of all the patterns in the paraglob */
     std::vector<std::string> get_patterns() const;
 
-    std::unique_ptr<AhoCorasickPlus> my_ac;
+    std::unique_ptr<aca_handle> handle;
     std::unordered_map<std::string, paraglob::ParaglobNode> meta_to_node_map;
     std::vector<std::string> meta_words;
+    std::set<std::string> meta_word_set;
 
     /* Patterns with no meta words, ex: '*' & '?' */
     std::vector<std::string> single_wildcards;

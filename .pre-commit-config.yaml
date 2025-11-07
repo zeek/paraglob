@@ -10,7 +10,7 @@ repos:
     language: python
     files: '\.(h|c|cpp|cc)$'
     types: [file]
-    exclude: '^src/ahocorasick/.*'
+    exclude: '^auxil/.*'
 
   - id: btest-command-commented
     name: Check that all BTest command lines are commented out
@@ -26,16 +26,16 @@ repos:
       - "c"
       - "c++"
       - "json"
-    exclude: '^src/ahocorasick/.*'
+    exclude: '^auxil/.*'
 
 - repo: https://github.com/cheshirekow/cmake-format-precommit
   rev: v0.6.13
   hooks:
   - id: cmake-format
-    exclude: '^src/ahocorasick/.*'
+    exclude: '^auxil/.*'
 
 - repo: https://github.com/crate-ci/typos
   rev: v1.35.3
   hooks:
     - id: typos
-      exclude: '^(.typos.toml|src/ahocorasick/.*)$'
+      exclude: '^(.typos.toml|auxil/.*)$'
