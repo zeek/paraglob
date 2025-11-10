@@ -8,3 +8,6 @@ build
 
 # clangd
 .cache
+
+# macOS
+.DS_Store
