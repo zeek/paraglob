@@ -50,7 +50,7 @@ int main(int argc, char* argv[]) {
         char* a = argv[2];
         char* b = argv[3];
         char* c = argv[4];
-        double elapsed = benchmark(a, b, c, false);
+        double elapsed = benchmark(a, b, c, true);
 
         if ( max_time > 0 ) {
             if ( elapsed <= max_time ) {

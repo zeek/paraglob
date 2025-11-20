@@ -1,3 +1,15 @@
+0.7.0 | 2025-11-20 08:34:24 -0700
+
+0.6.0-25 | 2025-11-20 08:34:08 -0700
+
+  * Switch to a different aho-corasick library (Tim Wojtulewicz, Corelight)
+
+  * Silence benchmarker output (Tim Wojtulewicz, Corelight)
+
+  * Add macOS .DS_Store to .gitignore (Tim Wojtulewicz, Corelight)
+
+  * Include <chrono> in benchmark cpp file (Tim Wojtulewicz, Corelight)
+
 0.6.0-20 | 2025-11-06 09:03:38 -0700
 
   * Pass the right arguments to the benchmarker (Tim Wojtulewicz, Corelight)
