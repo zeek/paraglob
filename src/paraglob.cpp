@@ -16,10 +16,13 @@ class aca_handle : public aca {};
 
 using namespace paraglob;
 
-Paraglob::Paraglob() : handle(std::make_unique<aca_handle>()) { aca_init(static_cast<aca*>(handle.get()), 2048); }
+Paraglob::Paraglob(size_t max_tree_size) : handle(std::make_unique<aca_handle>()) {
+    aca_init(static_cast<aca*>(handle.get()), max_tree_size);
+}
 
-Paraglob::Paraglob(const std::vector<std::string>& patterns) : handle(std::make_unique<aca_handle>()) {
-    aca_init(static_cast<aca*>(handle.get()), 2048);
+Paraglob::Paraglob(const std::vector<std::string>& patterns, size_t max_tree_size)
+    : handle(std::make_unique<aca_handle>()) {
+    aca_init(static_cast<aca*>(handle.get()), max_tree_size);
 
     for ( const std::string& pattern : patterns ) {
         if ( ! (add(pattern)) ) {
@@ -30,8 +33,8 @@ Paraglob::Paraglob(const std::vector<std::string>& patterns) : handle(std::make_
     compile();
 }
 
-Paraglob::Paraglob(std::unique_ptr<std::vector<uint8_t>> serialized)
-    : Paraglob(ParaglobSerializer::unserialize(serialized)) {}
+Paraglob::Paraglob(std::unique_ptr<std::vector<uint8_t>> serialized, size_t max_tree_size)
+    : Paraglob(ParaglobSerializer::unserialize(serialized), max_tree_size) {}
 
 Paraglob::~Paraglob() { aca_destroy(handle.get()); }
 
