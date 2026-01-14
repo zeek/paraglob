@@ -82,8 +82,8 @@ std::vector<std::string> Paraglob::get(const std::string& text) {
         patterns.insert(patterns.end(), single_wildcards.begin(), single_wildcards.end());
 
     // Remove duplicates
-    std::ranges::sort(patterns);
-    patterns.erase(std::unique(patterns.begin(), patterns.end()), patterns.end());
+    auto [first, last] = std::ranges::unique(patterns);
+    patterns.erase(first, last);
     return patterns;
 }
 
@@ -116,7 +116,8 @@ std::vector<std::string> Paraglob::get_meta_words(const std::string& pattern) {
     // Split the pattern by brackets
     for ( const std::string& word : split_on_brackets(pattern) ) {
         // Parse each bracket section
-        std::size_t prev = 0, pos;
+        size_t prev = 0;
+        size_t pos;
 
         while ( (pos = word.find_first_of("*?", prev)) != std::string::npos ) {
             if ( pos > prev ) {
@@ -145,8 +146,8 @@ std::vector<std::string> Paraglob::get_patterns() const {
         patterns.insert(patterns.end(), single_wildcards.begin(), single_wildcards.end());
 
     // Remove the duplicate patterns. Duplicates don't effect the state.
-    std::sort(patterns.begin(), patterns.end());
-    patterns.erase(unique(patterns.begin(), patterns.end()), patterns.end());
+    auto [first, last] = std::ranges::unique(patterns);
+    patterns.erase(first, last);
 
     return patterns;
 }
@@ -178,7 +179,7 @@ std::string Paraglob::str() const {
             std::for_each(v.rbegin(), v.rbegin() + 3, add_string);
         }
         else {
-            std::for_each(v.begin(), v.end(), add_string);
+            std::ranges::for_each(v, add_string);
         }
         add_string("]\n");
     };
