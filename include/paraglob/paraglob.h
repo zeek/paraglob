@@ -60,7 +60,6 @@ private:
     std::unique_ptr<aca_handle> handle;
     std::unordered_map<std::string, paraglob::ParaglobNode> meta_to_node_map;
     std::vector<std::string> meta_words;
-    std::set<std::string> meta_word_set;
 
     /* Patterns with no meta words, ex: '*' & '?' */
     std::vector<std::string> single_wildcards;
