@@ -23,6 +23,7 @@ Paraglob::Paraglob(const std::vector<std::string>& patterns) : handle(std::make_
 
     for ( const std::string& pattern : patterns ) {
         if ( ! (add(pattern)) ) {
+            aca_destroy(handle.get());
             throw paraglob::add_error("Failed to add pattern: " + pattern);
         }
     }
@@ -37,8 +38,10 @@ Paraglob::~Paraglob() { aca_destroy(handle.get()); }
 bool Paraglob::add(const std::string& pattern) {
     for ( const std::string& meta_word : get_meta_words(pattern) ) {
         if ( ! meta_to_node_map.contains(meta_word) ) {
-            aca_add(static_cast<aca*>(handle.get()), const_cast<char*>(meta_word.c_str()),
-                    static_cast<int>(meta_word.size()));
+            if ( aca_add(static_cast<aca*>(handle.get()), const_cast<char*>(meta_word.c_str()),
+                         static_cast<int>(meta_word.size())) == -1 )
+                return false;
+
             meta_words.push_back(meta_word);
             // Build the new paraglobNode in place.
             meta_to_node_map.emplace(std::piecewise_construct, std::forward_as_tuple(meta_word),
