@@ -16,10 +16,10 @@ class aca_handle : public aca {};
 
 using namespace paraglob;
 
-Paraglob::Paraglob() : handle(std::make_unique<aca_handle>()) { aca_init(static_cast<aca*>(handle.get()), 256); }
+Paraglob::Paraglob() : handle(std::make_unique<aca_handle>()) { aca_init(static_cast<aca*>(handle.get()), 2048); }
 
 Paraglob::Paraglob(const std::vector<std::string>& patterns) : handle(std::make_unique<aca_handle>()) {
-    aca_init(static_cast<aca*>(handle.get()), 256);
+    aca_init(static_cast<aca*>(handle.get()), 2048);
 
     for ( const std::string& pattern : patterns ) {
         if ( ! (add(pattern)) ) {
