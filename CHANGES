@@ -1,3 +1,15 @@
+0.7.0-6 | 2026-01-23 09:13:00 -0700
+
+  * Allow passing a maximum tree size to constructor (Tim Wojtulewicz, Corelight)
+
+  * Use std::ranges where appropriate (Tim Wojtulewicz, Corelight)
+
+  * Return false from Paraglob:add on failure to insert pattern (Tim Wojtulewicz, Corelight)
+
+  * Remove an unused member variable in Paraglob object (Tim Wojtulewicz, Corelight)
+
+  * Extend maximum size of the paraglob tree (Tim Wojtulewicz, Corelight)
+
 0.7.0 | 2025-11-20 08:34:24 -0700
 
 0.6.0-25 | 2025-11-20 08:34:08 -0700

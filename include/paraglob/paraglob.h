@@ -18,13 +18,13 @@ namespace paraglob {
 class Paraglob {
 public:
     /* Create an empty paraglob to fill with add and finalize with compile */
-    Paraglob();
+    Paraglob(size_t max_tree_size = 2048);
 
     /* Initialize a paraglob from a (large) vector of patterns and compile */
-    Paraglob(const std::vector<std::string>& patterns);
+    Paraglob(const std::vector<std::string>& patterns, size_t max_tree_size = 2048);
 
     /* Initialize and compile a paraglob from a serialized one */
-    Paraglob(std::unique_ptr<std::vector<uint8_t>> serialized);
+    Paraglob(std::unique_ptr<std::vector<uint8_t>> serialized, size_t max_tree_size = 2048);
 
     /* Destructor */
     ~Paraglob();
@@ -60,7 +60,6 @@ private:
     std::unique_ptr<aca_handle> handle;
     std::unordered_map<std::string, paraglob::ParaglobNode> meta_to_node_map;
     std::vector<std::string> meta_words;
-    std::set<std::string> meta_word_set;
 
     /* Patterns with no meta words, ex: '*' & '?' */
     std::vector<std::string> single_wildcards;

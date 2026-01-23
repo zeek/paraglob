@@ -16,29 +16,35 @@ class aca_handle : public aca {};
 
 using namespace paraglob;
 
-Paraglob::Paraglob() : handle(std::make_unique<aca_handle>()) { aca_init(static_cast<aca*>(handle.get()), 256); }
+Paraglob::Paraglob(size_t max_tree_size) : handle(std::make_unique<aca_handle>()) {
+    aca_init(static_cast<aca*>(handle.get()), max_tree_size);
+}
 
-Paraglob::Paraglob(const std::vector<std::string>& patterns) : handle(std::make_unique<aca_handle>()) {
-    aca_init(static_cast<aca*>(handle.get()), 256);
+Paraglob::Paraglob(const std::vector<std::string>& patterns, size_t max_tree_size)
+    : handle(std::make_unique<aca_handle>()) {
+    aca_init(static_cast<aca*>(handle.get()), max_tree_size);
 
     for ( const std::string& pattern : patterns ) {
         if ( ! (add(pattern)) ) {
+            aca_destroy(handle.get());
             throw paraglob::add_error("Failed to add pattern: " + pattern);
         }
     }
     compile();
 }
 
-Paraglob::Paraglob(std::unique_ptr<std::vector<uint8_t>> serialized)
-    : Paraglob(ParaglobSerializer::unserialize(serialized)) {}
+Paraglob::Paraglob(std::unique_ptr<std::vector<uint8_t>> serialized, size_t max_tree_size)
+    : Paraglob(ParaglobSerializer::unserialize(serialized), max_tree_size) {}
 
 Paraglob::~Paraglob() { aca_destroy(handle.get()); }
 
 bool Paraglob::add(const std::string& pattern) {
     for ( const std::string& meta_word : get_meta_words(pattern) ) {
         if ( ! meta_to_node_map.contains(meta_word) ) {
-            aca_add(static_cast<aca*>(handle.get()), const_cast<char*>(meta_word.c_str()),
-                    static_cast<int>(meta_word.size()));
+            if ( aca_add(static_cast<aca*>(handle.get()), const_cast<char*>(meta_word.c_str()),
+                         static_cast<int>(meta_word.size())) == -1 )
+                return false;
+
             meta_words.push_back(meta_word);
             // Build the new paraglobNode in place.
             meta_to_node_map.emplace(std::piecewise_construct, std::forward_as_tuple(meta_word),
@@ -79,8 +85,8 @@ std::vector<std::string> Paraglob::get(const std::string& text) {
         patterns.insert(patterns.end(), single_wildcards.begin(), single_wildcards.end());
 
     // Remove duplicates
-    std::ranges::sort(patterns);
-    patterns.erase(std::unique(patterns.begin(), patterns.end()), patterns.end());
+    auto [first, last] = std::ranges::unique(patterns);
+    patterns.erase(first, last);
     return patterns;
 }
 
@@ -113,7 +119,8 @@ std::vector<std::string> Paraglob::get_meta_words(const std::string& pattern) {
     // Split the pattern by brackets
     for ( const std::string& word : split_on_brackets(pattern) ) {
         // Parse each bracket section
-        std::size_t prev = 0, pos;
+        size_t prev = 0;
+        size_t pos;
 
         while ( (pos = word.find_first_of("*?", prev)) != std::string::npos ) {
             if ( pos > prev ) {
@@ -142,8 +149,8 @@ std::vector<std::string> Paraglob::get_patterns() const {
         patterns.insert(patterns.end(), single_wildcards.begin(), single_wildcards.end());
 
     // Remove the duplicate patterns. Duplicates don't effect the state.
-    std::sort(patterns.begin(), patterns.end());
-    patterns.erase(unique(patterns.begin(), patterns.end()), patterns.end());
+    auto [first, last] = std::ranges::unique(patterns);
+    patterns.erase(first, last);
 
     return patterns;
 }
@@ -175,7 +182,7 @@ std::string Paraglob::str() const {
             std::for_each(v.rbegin(), v.rbegin() + 3, add_string);
         }
         else {
-            std::for_each(v.begin(), v.end(), add_string);
+            std::ranges::for_each(v, add_string);
         }
         add_string("]\n");
     };
