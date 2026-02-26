@@ -1,4 +1,4 @@
-add_library(paraglob STATIC paraglob.cpp paraglob_serializer.cpp
+add_library(paraglob STATIC paraglob.cpp paraglob_serializer.cpp node.cpp
                             ${CMAKE_CURRENT_SOURCE_DIR}/../auxil/libaca/aca.c)
 target_include_directories(paraglob PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/../auxil/libaca)
 target_compile_features(paraglob PRIVATE cxx_std_20)

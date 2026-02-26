@@ -4,9 +4,6 @@
 
 #pragma once
 
-#include <fnmatch.h>
-#include <algorithm> // copy_if
-#include <iterator>
 #include <string>
 #include <vector>
 
@@ -24,19 +21,12 @@ public:
     void add_pattern(std::string pattern) { patterns.push_back(std::move(pattern)); }
 
     /* Merges this nodes matching patterns into the input vector. */
-    void merge_matches(std::vector<std::string>& target, const std::string& text) const {
-        std::copy_if(patterns.begin(), patterns.end(), std::back_inserter(target),
-                     [text](const std::string& candidate) {
-                         return (fnmatch(candidate.c_str(), text.c_str(), 0) == 0);
-                     });
-    }
+    void merge_matches(std::vector<std::string>& target, const std::string& text) const;
 
     // Merges this nodes patterns into the input vector
     // Note: this could be done more efficiently with a move iterator if we wanted
     // this to be destructive.
-    void merge_patterns(std::vector<std::string>& target) const {
-        target.insert(target.begin(), patterns.begin(), patterns.end());
-    }
+    void merge_patterns(std::vector<std::string>& target) const;
 
 private:
     std::string meta_word;

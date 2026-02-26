@@ -2,6 +2,8 @@
 
 #include "paraglob/paraglob.h"
 
+#include <algorithm>
+#include <ranges>
 #include <cstdint>
 #include <sstream>
 
