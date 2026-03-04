@@ -39,6 +39,8 @@ Paraglob::Paraglob(std::unique_ptr<std::vector<uint8_t>> serialized, size_t max_
 Paraglob::~Paraglob() { aca_destroy(handle.get()); }
 
 bool Paraglob::add(const std::string& pattern) {
+    bool is_new = seen_patterns.insert(pattern).second;
+
     for ( const std::string& meta_word : get_meta_words(pattern) ) {
         if ( ! meta_to_node_map.contains(meta_word) ) {
             if ( aca_add(static_cast<aca*>(handle.get()), const_cast<char*>(meta_word.c_str()),
@@ -54,6 +56,9 @@ bool Paraglob::add(const std::string& pattern) {
             meta_to_node_map.at(meta_word).add_pattern(pattern);
         }
     }
+
+    if ( is_new )
+        all_patterns.push_back(pattern);
 
     return true;
 }
@@ -140,19 +145,7 @@ std::vector<std::string> Paraglob::get_meta_words(const std::string& pattern) {
 }
 
 std::vector<std::string> Paraglob::get_patterns() const {
-    std::vector<std::string> patterns;
-    // Merge in all of the nodes patterns
-    for ( const auto& it : meta_to_node_map ) {
-        it.second.merge_patterns(patterns);
-    }
-    if ( single_wildcards.size() > 0 )
-        patterns.insert(patterns.end(), single_wildcards.begin(), single_wildcards.end());
-
-    // Remove the duplicate patterns. Duplicates don't effect the state.
-    auto [first, last] = std::ranges::unique(patterns);
-    patterns.erase(first, last);
-
-    return patterns;
+    return all_patterns;
 }
 
 // Returns a string representation of the paraglob that it can rebuild

@@ -7,6 +7,7 @@
 #include <set>
 #include <string>
 #include <unordered_map>
+#include <unordered_set>
 #include <vector>
 
 #include "paraglob/node.h"
@@ -63,6 +64,10 @@ private:
 
     /* Patterns with no meta words, ex: '*' & '?' */
     std::vector<std::string> single_wildcards;
+
+    /* All unique patterns in insertion order, for deterministic serialization */
+    std::vector<std::string> all_patterns;
+    std::unordered_set<std::string> seen_patterns;
 };
 
 } // namespace paraglob
