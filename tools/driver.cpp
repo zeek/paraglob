@@ -6,6 +6,7 @@ A simple driver for testing paraglob's performance and functionality.
 Supports the following arguments:
     -b <a> <b> <c> <time>	-> Benchmark paraglob.  See below.
     -n <text> <patterns>	-> Print the number of matching patterns in the text.
+    -t <size> <text> <patterns>	-> As -n, with an explicit max_tree_size.
 
 Benchmarking:
     a	-> number of patterns to generate
@@ -20,6 +21,7 @@ Note that this script is just for testing and as such if you give it bad
 arguments it will ungracefully break.
 */
 
+#include <cstdlib>
 #include <cstring>
 #include <iostream>
 #include <vector>
@@ -38,6 +40,8 @@ int main(int argc, char* argv[]) {
         std::cerr << "       " << "Benchmark. a - n patterns. b - n queries. c - % matches.\n";
         std::cerr << "       " << argv[0] << " -s <patterns>\n";
         std::cerr << "       " << "Prints a a paraglob with **patterns** serialization\n";
+        std::cerr << "       " << argv[0] << " -t <size> <text> <patterns>\n";
+        std::cerr << "       " << "As -n, with an explicit max_tree_size.\n";
         exit(1);
     }
 
@@ -68,6 +72,18 @@ int main(int argc, char* argv[]) {
         }
         paraglob::Paraglob p(v);
         std::cout << p.get(std::string(argv[2])).size() << "\n";
+        std::cout << p.str();
+    }
+    else if ( strcmp(argv[1], "-t") == 0 ) {
+        // Zeek derives max_tree_size from the patterns, so it reaches sizes the
+        // 2048 default hides. 1 is what an empty pattern set produces there.
+        size_t max_tree_size = strtoul(argv[2], nullptr, 10);
+        std::vector<std::string> v;
+        for ( int i = 4; i < argc; i++ ) {
+            v.push_back(std::string(argv[i]));
+        }
+        paraglob::Paraglob p(v, max_tree_size);
+        std::cout << p.get(std::string(argv[3])).size() << "\n";
         std::cout << p.str();
     }
     else if ( strcmp(argv[1], "-s") == 0 ) {
