@@ -1,0 +1,4 @@
+# Verify that constructing a paraglob with no patterns does not crash.
+# Regression test for segfault when max_tree_size causes ecap=0 in libaca.
+# @TEST-EXEC:	paraglob-test -n anything > out
+# @TEST-EXEC:	btest-diff out

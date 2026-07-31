@@ -63,7 +63,12 @@ bool Paraglob::add(const std::string& pattern) {
     return true;
 }
 
-void Paraglob::compile() { aca_build(static_cast<aca*>(handle.get())); }
+void Paraglob::compile() {
+    if ( meta_words.empty() )
+        return;
+
+    aca_build(static_cast<aca*>(handle.get()));
+}
 
 static std::set<int> hits;
 
