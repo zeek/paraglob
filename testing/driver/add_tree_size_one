@@ -1,0 +1,5 @@
+# As empty_init_tree_size_one, but with a pattern to add: aca_add() reaches the same
+# zero-capacity edge table before aca_build() ever runs, so guarding the build alone
+# leaves this path crashing.
+# @TEST-EXEC:	paraglob-test -t 1 anything a > out
+# @TEST-EXEC:	btest-diff out

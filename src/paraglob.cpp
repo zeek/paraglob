@@ -16,13 +16,17 @@ class aca_handle : public aca {};
 
 using namespace paraglob;
 
+// libaca sizes its edge table as (n-1) + (n-1)/3, which is 0 for n == 1, and then takes a
+// modulus by that capacity. Keep n >= 2 so the table is never empty.
+static size_t clamp_tree_size(size_t max_tree_size) { return max_tree_size < 2 ? 2 : max_tree_size; }
+
 Paraglob::Paraglob(size_t max_tree_size) : handle(std::make_unique<aca_handle>()) {
-    aca_init(static_cast<aca*>(handle.get()), max_tree_size);
+    aca_init(static_cast<aca*>(handle.get()), clamp_tree_size(max_tree_size));
 }
 
 Paraglob::Paraglob(const std::vector<std::string>& patterns, size_t max_tree_size)
     : handle(std::make_unique<aca_handle>()) {
-    aca_init(static_cast<aca*>(handle.get()), max_tree_size);
+    aca_init(static_cast<aca*>(handle.get()), clamp_tree_size(max_tree_size));
 
     for ( const std::string& pattern : patterns ) {
         if ( ! (add(pattern)) ) {
@@ -63,12 +67,7 @@ bool Paraglob::add(const std::string& pattern) {
     return true;
 }
 
-void Paraglob::compile() {
-    if ( meta_words.empty() )
-        return;
-
-    aca_build(static_cast<aca*>(handle.get()));
-}
+void Paraglob::compile() { aca_build(static_cast<aca*>(handle.get())); }
 
 static std::set<int> hits;
 
