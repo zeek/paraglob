@@ -1,0 +1,5 @@
+# Regression test: max_tree_size 1 makes libaca's edge table capacity 0, and every
+# edge lookup then takes a modulus by it. Zeek reaches this size for an empty
+# pattern set, so a crash here is a crash of a running sensor.
+# @TEST-EXEC:	paraglob-test -t 1 anything > out
+# @TEST-EXEC:	btest-diff out

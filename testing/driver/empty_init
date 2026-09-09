@@ -1,0 +1,3 @@
+# A paraglob with no patterns matches nothing, at the default tree size.
+# @TEST-EXEC:	paraglob-test -n anything > out
+# @TEST-EXEC:	btest-diff out

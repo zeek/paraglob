@@ -1,3 +1,81 @@
+0.7.0-13 | 2026-09-09 13:27:55 -0700
+
+  * Match the driver's trailing output byte in the new baselines (David Burkett, Corelight)
+
+    Paraglob::str() ends with a space and no final newline, so btest-diff
+    compares against a baseline whose last bytes are "]\n ". The three
+    baselines added or updated in the previous two commits ended with a
+    newline instead, and btest reported all three tests as failing.
+
+    Verified with btest 1.3 on x86-64: add_tree_size_one, empty_init, and
+    empty_init_tree_size_one now pass. basic_matches and empty_patterns
+    still fail, byte-identically and with unchanged baselines, on pristine
+    a77a170 as well -- std::ranges::unique in Paraglob::get() drops only
+    adjacent duplicates, which is unrelated to these commits.
+
+    Co-Authored-By: Claude Fable 5 <noreply@anthropic.com>
+
+  * Fix division by zero when max_tree_size is 1 (David Burkett, Corelight)
+
+    libaca sizes its edge table as (n-1) + (n-1)/3, so max_tree_size 1 gives a
+    capacity of 0, and every edge lookup then takes a modulus by it. aca_init()
+    clamps n < 1 up to 1, landing on the one size that breaks, and calloc(0, ...)
+    returns non-NULL, so it reports success and hands back an unusable automaton.
+
+    Zeek derives max_tree_size as summed pattern length plus one, so an empty
+    pattern set reaches exactly 1 and aborts the process.
+
+    Clamp max_tree_size up to 2 at both aca_init() call sites. All three entry
+    points that touch the edge table divide by the capacity -- add() via aca_add,
+    compile() via aca_build, and get() via aca_next -- so guarding any single one
+    leaves the others crashing. Only sizes 0 and 1 change behavior, and both
+    previously aborted.
+
+    Measured on x86-64 at -O2: paraglob-test -t 1 anything and -t 1 anything a
+    both exited 136 (SIGFPE) before, 0 after. Confirmed with
+    -fsanitize=undefined -fno-sanitize-recover=all on all three paths. Note that
+    aarch64 does not trap on integer division by zero, so this reads as passing
+    there regardless.
+
+    Add add_tree_size_one to cover the aca_add path, and correct the
+    empty_init_tree_size_one comment, which named aca_build as the only site.
+
+    Co-Authored-By: Claude Fable 5 <noreply@anthropic.com>
+
+  * Test the empty-paraglob crash at the tree size that triggers it (David Burkett, Corelight)
+
+    The empty_init test added with the fix passes without it. The driver
+    constructs every paraglob at the default max_tree_size of 2048, which
+    gives a non-zero edge capacity, so aca_build() never divides by zero
+    there. Only max_tree_size 1 reaches the crash, and that is the size Zeek
+    computes for an empty pattern set.
+
+    Add a -t <size> driver mode that pins max_tree_size, and a test using it.
+    Measured against both trees: paraglob-test -t 1 anything exits 139
+    without the compile() guard and 0 with it.
+
+    Signed-off-by: David Burkett <david.burkett@corelight.com>
+    Co-Authored-By: Claude Fable 5 <noreply@anthropic.com>
+
+  * Fix segfault when compiling paraglob with no meta-words (David Burkett, Corelight)
+
+    When all input patterns are empty strings (or the pattern vector itself
+    is empty), no meta-words are added to the Aho-Corasick automaton. The
+    subsequent aca_build() call triggers a division-by-zero in getedge()
+    because ecap is 0 when max_tree_size is 1. This crashes the process
+    with SIGSEGV.
+
+    Skip the aca_build() call when no meta-words have been inserted. An
+    empty paraglob correctly matches nothing via the existing get() logic.
+
+    This matters in Zeek because paraglob_init() computes max_tree_size as
+    the sum of pattern lengths plus one. A script that populates a paraglob
+    from operator-supplied configuration will crash a running sensor when
+    that configuration is emptied.
+
+    Signed-off-by: David Burkett <david.burkett@corelight.com>
+    Co-Authored-By: Claude Fable 5 <noreply@anthropic.com>
+
 0.7.0-8 | 2026-03-04 09:42:25 -0700
 
   * makes serialization deterministic by tracking unique patterns in insertion order (Maor Hamami)
