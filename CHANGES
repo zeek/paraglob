@@ -1,3 +1,7 @@
+0.7.0-15 | 2026-09-16 10:20:45 -0700
+
+  * Add workflow for basic build and btests (Tim Wojtulewicz, Corelight)
+
 0.7.0-13 | 2026-09-09 13:27:55 -0700
 
   * Match the driver's trailing output byte in the new baselines (David Burkett, Corelight)
